@@ -2,6 +2,8 @@ import pandas as pd
 
 from .utils import clean_column_names, drop_columns, dropna_except, cast_columns
 
+"""Parsing chlorophyll Excel spreadsheet"""
+
 # columns expected
 CHL_COLUMNS = ['Cruise #:', 'Cast #', 'Niskin #', 'Target\nDepth', 'Replicate',
        'Filter\nSize', 'Vol\nFilt', 'Vol Extracted', 'Sample', '90% Acetone',
