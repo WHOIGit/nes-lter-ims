@@ -4,6 +4,8 @@ from .utils import clean_column_names, drop_columns, dropna_except, cast_columns
 
 """Parsing chlorophyll Excel spreadsheet"""
 
+# FIXME this is based on SFDchl, should be based on NESLTERchl?"""
+
 # columns expected
 CHL_COLUMNS = ['Cruise #:', 'Cast #', 'Niskin #', 'Target\nDepth', 'Replicate',
        'Filter\nSize', 'Vol\nFilt', 'Vol Extracted', 'Sample', '90% Acetone',
