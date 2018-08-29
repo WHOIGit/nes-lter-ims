@@ -3,7 +3,7 @@ import re
 import numpy as np
 import pandas as pd
 
-# spreadsheet cleaning
+# spreadsheet cleaning and formatting
 
 def clean_column_name(colname):
     """convert column names to lowercase with underbars"""

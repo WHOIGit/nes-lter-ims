@@ -18,8 +18,10 @@ def parse_chl(chl_xl_path):
     assert set(df.columns) == set(CHL_COLUMNS), 'chl spreadsheet does not contain expected columns'
     # clean column names
     clean_column_names(df, {
-        'Vol\nFilt': 'vol_filtered',
-        '90% Acetone': 'ninety_percent_acetone'
+        'Vol\nFilt': 'vol_filtered', # unabbreviating to be consistent with vol_extracted
+        '90% Acetone': 'ninety_percent_acetone', # spell initial number
+        'Chl (ug/l)': 'chl', # remove units
+        'Phaeo (ug/l)': 'phaeo', # remove units
         })
     # from now on, clean column names will be used
     # drop unused columns

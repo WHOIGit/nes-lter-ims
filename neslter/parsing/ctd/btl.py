@@ -176,8 +176,7 @@ class BtlFile(CtdTextParser):
             return self._col(DEPTH_COL)
         elif PRESSURE_COL in df.columns:
             ps = [p_to_z(p, self.lat) for p in df[PRESSURE_COL]]
-            s = pd.Series(ps)
-            s.index = df[BOTTLE_COL]
+            s = pd.Series(ps, index=df[BOTTLE_COL])
             return s
         else:
             raise KeyError('no source of depth information found')
@@ -191,14 +190,11 @@ def find_btl_file(dir, cruise, cast):
         if cr.lower() == cruise.lower() and int(ca) == int(cast):
             return BtlFile(path)
 
-def parse_btl(in_path):
+def parse_btl(in_path, add_depth=True):
     btl = BtlFile(in_path)
     df = btl.to_dataframe()
+    # add depth column if necessary
+    if add_depth and DEPTH_COL not in df.columns and PRESSURE_COL in df.columns:
+        df[DEPTH_COL] = btl.depths().values
     clean_column_names(df)
     return df
-
-def convert_file(in_path, out_path):
-    btl = BtlFile(in_path)
-    df = btl.to_dataframe()
-    df.to_csv(out_path, index=False)
-    return btl
