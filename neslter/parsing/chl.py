@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .utils import clean_column_names, drop_columns, dropna_except, cast_columns
+from .utils import clean_column_names, drop_columns, dropna_except, cast_columns, format_dataframe
 
 """Parsing chlorophyll Excel spreadsheet"""
 
@@ -33,3 +33,9 @@ def parse_chl(chl_xl_path):
         'vol_filtered','vol_extracted','sample','ninety_percent_acetone']
     cast_columns(df, int, int_cols)
     return df
+
+def format_chl(df):
+    return format_dataframe(df, precision={
+        'ra': 2,
+        'rb': 2,
+        })
