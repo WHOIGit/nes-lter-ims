@@ -3,7 +3,7 @@ import os
 from scipy.io import loadmat
 import pandas as pd
 
-from .utils import format_dataframe
+from ..utils import format_dataframe
 
 """Parsing nutrient mat files"""
 
