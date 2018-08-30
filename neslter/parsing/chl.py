@@ -19,7 +19,7 @@ def parse_chl(chl_xl_path):
     df = pd.read_excel(chl_xl_path)
     assert set(df.columns) == set(CHL_COLUMNS), 'chl spreadsheet does not contain expected columns'
     # clean column names
-    clean_column_names(df, {
+    df = clean_column_names(df, {
         'Vol\nFilt': 'vol_filtered', # unabbreviating to be consistent with vol_extracted
         '90% Acetone': 'ninety_percent_acetone', # spell initial number
         'Chl (ug/l)': 'chl', # remove units
@@ -27,9 +27,9 @@ def parse_chl(chl_xl_path):
         })
     # from now on, clean column names will be used
     # drop unused columns
-    drop_columns(df, ['sample_1', '_90_acetone_1', 'fluorometer'])
+    df = drop_columns(df, ['sample_1', '_90_acetone_1', 'fluorometer'])
     # drop nas
-    dropna_except(df, ['comments'])
+    df = dropna_except(df, ['comments'])
     # convert selected columns to ints
     int_cols = ['cast','niskin','target_depth','filter_size',
         'vol_filtered','vol_extracted','sample','ninety_percent_acetone']

@@ -13,9 +13,10 @@ def clean_column_name(colname):
     colname = re.sub(r'^([0-9])',r'_\1',colname) # insert _ before leading digit
     return colname
 
-def clean_column_names(df, col_map={}):
-    """clean all column names for a Pandas dataframe,
-    in place"""
+def clean_column_names(df, col_map={}, inplace=False):
+    """clean all column names for a Pandas dataframe"""
+    if not inplace:
+        df = df.copy()
     ccns = []
     for c in df.columns:
         if c in col_map:
@@ -23,27 +24,35 @@ def clean_column_names(df, col_map={}):
         else:
             ccns.append(clean_column_name(c))
     df.columns = ccns
+    return df
 
-def drop_columns(df, columns):
+def drop_columns(df, columns, inplace=False):
     """drop a list of columns from a Pandas dataframe,
     in place"""
+    if not inplace:
+        df = df.copy()
     for c in columns:
         df.pop(c)
+    return df
 
-def dropna_except(df, except_subset):
+def dropna_except(df, except_subset, inplace=False):
     """drop rows containing nans from a Pandas dataframe,
     but allow nans in the specified subset of columns,
     in place"""
     subset = set(df.columns)
     for ec in except_subset:
         subset.remove(ec)
-    df.dropna(inplace=True, subset=subset)
+    df = df.dropna(inplace=inplace, subset=subset)
+    return df
 
-def cast_columns(df, dtype, columns):
+def cast_columns(df, dtype, columns, inplace=False):
     """convert columns in a dataframe to the given datatype,
     in place"""
+    if not inplace:
+        df = df.copy()
     for c in columns:
         df[c] = df[c].astype(dtype)
+    return df
 
 def format_floats(floats, precision=3, nan_string='NaN'):
     """convert an iterable of floating point numbers to

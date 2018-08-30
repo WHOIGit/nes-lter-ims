@@ -6,8 +6,8 @@ DATE_COLS = ['date_combusted', 'date_run']
 
 def parse_chn(chn_xl_path):
     df = pd.read_excel(chn_xl_path)
-    clean_column_names(df)
-    dropna_except(df, ['notes'])
+    df = clean_column_names(df)
+    df = dropna_except(df, ['notes'])
     for col in DATE_COLS:
        df[col] = pd.to_datetime(df[col], format='%Y%m%d')
     return df

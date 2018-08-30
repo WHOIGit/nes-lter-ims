@@ -7,10 +7,10 @@ NUT_COLS = ['nitrate', 'ammonium', 'phosphate', 'silicate']
 
 def parse_nut(nut_xl_path):
     df = pd.read_excel(nut_xl_path, encoding='latin-1', skiprows=[0,1])
-    clean_column_names(df, {
+    df = clean_column_names(df, {
         'Number': 'nutrient_number',
         })
-    dropna_except(df, ['comments'])
+    df = dropna_except(df, ['comments'])
     # deal with below-detection-limit values
     # for the nut cols, add {}_bdl col with the
     # detection limit value, for all below-detection-limit
