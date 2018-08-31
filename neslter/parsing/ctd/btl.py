@@ -205,6 +205,7 @@ def parse_btl(in_path, add_depth=True):
     df = clean_column_names(df, {
         'Bottle': 'niskin'
         })
+    df = df.astype({ 'cast': str, 'niskin': str })
     return df
 
 def compile_btl_files(in_dir, add_depth=True):

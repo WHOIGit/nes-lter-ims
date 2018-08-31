@@ -29,10 +29,10 @@ def parse_chl(chl_xl_path):
     na_allowed = ['lter_station', 'comments', 'comments_2', 'personnel_filter', 'personnel_read']
     df = dropna_except(df, na_allowed)
     # cast the int columns
-    df = cast_columns(df, int, ['filter_size'])
+    df = df.astype({ 'filter_size': int })
     df['date'] = float_to_datetime(df['date'])
     df['cal_date'] = float_to_datetime(df['cal_date'])
-    str_cols = na_allowed + ['cast', 'sample']
+    str_cols = na_allowed + ['cast', 'niskin', 'sample']
     df = cast_columns(df, str, str_cols, fillna='')
     # deal with 'freeze' in time_in and time_out columns
     # add freeze column
