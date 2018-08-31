@@ -45,7 +45,7 @@ def dropna_except(df, except_subset, inplace=False):
     df = df.dropna(inplace=inplace, subset=subset)
     return df
 
-def cast_columns(df, dtype, columns, inplace=False):
+def cast_columns(df, dtype, columns, inplace=False, int_fill_value=-9999):
     """convert columns in a dataframe to the given datatype,
     in place"""
     if not inplace:
@@ -53,6 +53,12 @@ def cast_columns(df, dtype, columns, inplace=False):
     for c in columns:
         df[c] = df[c].astype(dtype)
     return df
+
+def float_to_datetime(s, format='%Y%m%d'):
+    """pandas will interpret some datetime formats as floats, e.g.,
+    '20180830' will be parsed as the float 20180830.0.
+    convert back to datetimes"""
+    return pd.to_datetime(s.astype(int).astype(str), format=format)
 
 def format_floats(floats, precision=3, nan_string='NaN'):
     """convert an iterable of floating point numbers to
