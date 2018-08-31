@@ -14,7 +14,9 @@ RAW_COLS = ['Cruise #:', 'Date', 'LTER\nStation', 'Cast #', 'Niskin #', 'Time\nI
        'Unnamed: 29']
 
 def parse_chl(chl_xl_path):
-    raw = pd.read_excel(chl_xl_path)
+    raw = pd.read_excel(chl_xl_path, dtype={
+            'Cast #': str,
+        })
     assert set(raw.columns) == set(RAW_COLS), 'chl spreadsheet does not contain expected columns'
     df = clean_column_names(raw, {
         'Vol\nFilt': 'vol_filtered',
