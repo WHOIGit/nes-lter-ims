@@ -45,12 +45,14 @@ def dropna_except(df, except_subset, inplace=False):
     df = df.dropna(inplace=inplace, subset=subset)
     return df
 
-def cast_columns(df, dtype, columns, inplace=False, int_fill_value=-9999):
+def cast_columns(df, dtype, columns, inplace=False, fillna=None):
     """convert columns in a dataframe to the given datatype,
     in place"""
     if not inplace:
         df = df.copy()
     for c in columns:
+        if fillna is not None:
+            df[c] = df[c].fillna(fillna)
         df[c] = df[c].astype(dtype)
     return df
 
