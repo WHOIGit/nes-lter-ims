@@ -15,6 +15,7 @@ def parse_nut(nut_xl_path):
         'Number': 'nutrient_number',
         })
     df = dropna_except(df, ['comments'])
+    df = df.astype({ 'cast': str })
     # deal with below-detection-limit values
     # for the nut cols, add {}_bdl col with the
     # detection limit value, for all below-detection-limit
