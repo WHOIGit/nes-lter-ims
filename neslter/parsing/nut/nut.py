@@ -3,10 +3,14 @@ import pandas as pd
 
 from ..utils import clean_column_names, dropna_except, format_dataframe
 
+RAW_COLS = ['Number', 'Cruise', 'Cast', 'Sample ID', 'Nitrate', 'Ammonium',
+       'Phosphate', 'Silicate', 'Comments']
+
 NUT_COLS = ['nitrate', 'ammonium', 'phosphate', 'silicate']
 
 def parse_nut(nut_xl_path):
-    df = pd.read_excel(nut_xl_path, encoding='latin-1', skiprows=[0,1])
+    df = pd.read_excel(nut_xl_path, skiprows=[0,1])
+    assert set(df.columns) == set(RAW_COLS), 'nut spreadsheet does not contain expected columns'
     df = clean_column_names(df, {
         'Number': 'nutrient_number',
         })

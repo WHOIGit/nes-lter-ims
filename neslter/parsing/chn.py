@@ -2,10 +2,15 @@ import pandas as pd
 
 from .utils import clean_column_names, dropna_except, format_dataframe
 
+RAW_COLS = ['Cruise', 'Cast', 'Niskin', 'CHN_Name', 'Replicate', 'Sample Tray ID',
+       'Date_Combusted', 'Date_Run', 'Foil Packet', 'umol N', 'umol C',
+       'Notes:']
+
 DATE_COLS = ['date_combusted', 'date_run']
 
 def parse_chn(chn_xl_path):
     df = pd.read_excel(chn_xl_path)
+    assert set(df.columns) == set(RAW_COLS), 'chn spreadsheet does not contain expected columns'
     df = clean_column_names(df)
     df = dropna_except(df, ['notes'])
     for col in DATE_COLS:
