@@ -1,6 +1,8 @@
 import math
 from glob import glob
 import os
+import warnings
+
 import pandas as pd 
 
 from .common import CtdTextParser, pathname2cruise_cast
@@ -181,8 +183,12 @@ class BtlFile(CtdTextParser):
         else:
             raise KeyError('no source of depth information found')
 
-def find_btl_file(dir, cruise, cast):
+def find_btl_files(dir):
     for path in glob(os.path.join(dir, '*.btl')):
+        yield path
+
+def find_btl_file(dir, cruise, cast):
+    for path in find_btl_files(dir):
         try:
             cr, ca = pathname2cruise_cast(path)
         except ValueError:
@@ -196,5 +202,22 @@ def parse_btl(in_path, add_depth=True):
     # add depth column if necessary
     if add_depth and DEPTH_COL not in df.columns and PRESSURE_COL in df.columns:
         df[DEPTH_COL] = btl.depths().values
-    clean_column_names(df)
+    df = clean_column_names(df, {
+        'Bottle': 'niskin'
+        })
     return df
+
+def compile_btl_files(in_dir, add_depth=True):
+    """convert a set of bottle files to a single dataframe"""
+    compiled_df = None
+    for path in find_btl_files(in_dir):
+        try:
+            cr, ca = pathname2cruise_cast(path)
+        except ValueError:
+            warnings.warn('cannot parse cruise and cast from "{}"'.format(path))
+        df = parse_btl(path)
+        if compiled_df is None:
+            compiled_df = df
+        else:
+            compiled_df = compiled_df.append(df)
+    return compiled_df
