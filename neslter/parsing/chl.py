@@ -52,10 +52,10 @@ def validate_chl(df):
     i = df['vol_filtered']
     n = df['dilution_during_reading']
 
-    expected_chl = ( q * p / (p - 1) * (u - v) * k / i) / n
+    expected_chl = ( q * p / (p - 1) * (u - v) * k / i ) / n
     assert np.allclose(df['chl'], expected_chl), 'unexpected chl value(s)'
 
-    expected_phaeo = ( q * p / ( p - 1) * (p * v - u) * k / i) / n
+    expected_phaeo = ( q * p / (p - 1) * (p * v - u) * k / i ) / n
     assert np.allclose(df['phaeo'], expected_phaeo), 'unexpected phaeo value(s)'
 
 def format_chl(df):
