@@ -14,10 +14,13 @@ RAW_COLS = ['Cruise #:', 'Date', 'LTER\nStation', 'Cast #', 'Niskin #', 'Time\nI
        'Unnamed: 29']
 
 def parse_chl(chl_xl_path):
+    """Parse chl Excel spreadsheet"""
     raw = pd.read_excel(chl_xl_path, dtype={
             'Cast #': str,
         })
+    # check for regression
     assert set(raw.columns) == set(RAW_COLS), 'chl spreadsheet does not contain expected columns'
+    # clean and rename columns
     df = clean_column_names(raw, {
         'Vol\nFilt': 'vol_filtered', # remove abbreviation
         'Chl (ug/l)': 'chl', # remove unit
@@ -30,14 +33,18 @@ def parse_chl(chl_xl_path):
     df = dropna_except(df, na_allowed)
     # cast the int columns
     df = df.astype({ 'filter_size': int })
+    # convert floats like 20180905.0 to dates
     df['date'] = float_to_datetime(df['date'])
     df['cal_date'] = float_to_datetime(df['cal_date'])
+    # cast all string columns
+    # it happens that all the cols where na is allowed are strings
     str_cols = na_allowed + ['cast', 'niskin', 'sample']
     df = cast_columns(df, str, str_cols, fillna='')
     # deal with 'freeze' in time_in and time_out columns
     # add freeze column
     freeze = df['time_in'].str.lower() == 'freeze'
     df['freeze'] = freeze
+    # now parse time in and time out date cols
     for c in ['time_in', 'time_out']:
         df.loc[freeze, c] = np.nan
         df[c] = pd.to_datetime(df[c])
