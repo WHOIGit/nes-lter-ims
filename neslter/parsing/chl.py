@@ -19,11 +19,11 @@ def parse_chl(chl_xl_path):
         })
     assert set(raw.columns) == set(RAW_COLS), 'chl spreadsheet does not contain expected columns'
     df = clean_column_names(raw, {
-        'Vol\nFilt': 'vol_filtered',
-        'Chl (ug/l)': 'chl',
-        'Phaeo (ug/l)': 'phaeo',
-        'Unnamed: 29': 'comments_2',
-        '90% Acetone': 'ninety_percent_acetone'
+        'Vol\nFilt': 'vol_filtered', # remove abbreviation
+        'Chl (ug/l)': 'chl', # remove unit
+        'Phaeo (ug/l)': 'phaeo', # remove unit
+        'Unnamed: 29': 'comments_2', # give descriptive name
+        '90% Acetone': 'ninety_percent_acetone' # remove leading digit
     })
     # drop rows with nas
     na_allowed = ['lter_station', 'comments', 'comments_2', 'personnel_filter', 'personnel_read']
@@ -42,21 +42,6 @@ def parse_chl(chl_xl_path):
         df.loc[freeze, c] = np.nan
         df[c] = pd.to_datetime(df[c])
     return df
-
-def validate_chl(df):
-    q = df['fd_calibration']
-    p = df['tau_calibration']
-    u = df['rb_blank']
-    v = df['ra_blank']
-    k = df['vol_extracted']
-    i = df['vol_filtered']
-    n = df['dilution_during_reading']
-
-    expected_chl = ( q * p / (p - 1) * (u - v) * k / i ) / n
-    assert np.allclose(df['chl'], expected_chl), 'unexpected chl value(s)'
-
-    expected_phaeo = ( q * p / (p - 1) * (p * v - u) * k / i ) / n
-    assert np.allclose(df['phaeo'], expected_phaeo), 'unexpected phaeo value(s)'
 
 def format_chl(df):
     return format_dataframe(df, precision={
