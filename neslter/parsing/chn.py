@@ -15,7 +15,8 @@ def parse_chn(chn_xl_path):
     df = dropna_except(df, ['notes'])
     for col in DATE_COLS:
        df[col] = pd.to_datetime(df[col], format='%Y%m%d')
-    df = df.astype({ 'cast': str, 'niskin': str })
+    df = df.astype({ 'cast': int, 'niskin': int }) # cast to int to remove decimal notation
+    df = df.astype({ 'cast': str, 'niskin': str }) # now cast to string
     return df
 
 def format_chn(df):
