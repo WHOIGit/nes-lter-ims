@@ -18,8 +18,9 @@ cruise number and cast number. each is a special
 case for a different naming convention used on
 NES-LTER vessels"""
 CRUISE_CAST_PATHNAME_REGEXES = [
-    r'(ar.*)(\d\d\d)', # Armstrong
-    r'(EN\d+).*[Cc]ast(\d+)', # Endeavor
+    r'(ar22)(\d\d)', # Armstrong 22
+    r'(ar\d\d[a-c]?)(\d\d\d)', # Armstrong 24, 28
+    r'(EN\d+).*[Cc]ast(\d\d\d)', # Endeavor
 ]
 
 def pathname2cruise_cast(pathname):
@@ -28,6 +29,7 @@ def pathname2cruise_cast(pathname):
         m = re.match(regex, fn)
         if m is not None:
             cruise, cast = m.groups()
+            cruise = cruise.upper()
             cast = int(cast)
             return cruise, cast
     raise ValueError('unable to determine cruise and cast from "{}"'.format(pathname))
