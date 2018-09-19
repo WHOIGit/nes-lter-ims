@@ -1,0 +1,5 @@
+<stmml:unit abbreviation="µmol/L" constantToSI="0"
+  id="microMolePerLiter" multiplierToSI="0.000001"
+  name="microMolePerLiter" parentSI="molarity" unitType="amountOfSubstanceConcentration">
+    <stmml:description>micromoles per liter of solution</stmml:description>
+</stmml:unit>

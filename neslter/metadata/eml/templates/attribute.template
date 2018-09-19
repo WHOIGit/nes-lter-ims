@@ -1,0 +1,11 @@
+<attribute>
+    <attributeName>{{ name }}</attributeName>
+    <attributeDefinition>{{ definition }}</attributeDefinition>
+    <storageType typeSystem="http://www.w3.org/2001/XMLSchema-datatypes">{{ xsd_type }}</storageType>
+    {% include 'measurementScale.template' %}
+
+    <missingValueCode>
+        <code>{% if nan is defined %}{{ nan }}{% else %}NaN{% endif %}</code>
+        <codeExplanation>No data available</codeExplanation>
+    </missingValueCode>
+</attribute>

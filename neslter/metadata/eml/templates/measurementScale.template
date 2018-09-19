@@ -1,0 +1,49 @@
+{# required context variables: #}
+{# - is_latlon #}
+{# - xsd_type #}
+{# - definition (for string types) #}
+{# - ratio_or_interval (optional, must be 'ratio' or 'interval') #}
+{# - unit (optional) #}
+{# - standard_or_custom_unit (optional, must be 'standard' or 'custom') #}
+{# - precision, in eml format (optional) #}
+<measurementScale>
+{% if xsd_type == 'date' %}
+<dateTime>
+    <formatString>YYYY-MM-DD hh:mm:ss</formatString>
+</dateTime>
+{% elif xsd_type == 'string' %}
+<nominal>
+    <nonNumericDomain>
+        <textDomain>
+            <definition>{{ definition }}</definition>
+        </textDomain>
+    </nonNumericDomain>
+</nominal>
+{% elif is_latlon %}
+<interval>
+    <unit>
+        <standardUnit>degree</standardUnit>
+    </unit>
+    {% if precision is defined %}
+    <precision/>{{ precision }}</precision>
+    {% endif %}
+    <numericDomain>
+        <numberType>real</numberType>
+    </numericDomain>
+</interval>
+{% elif xsd_type == 'double' %}
+<{{ ratio_or_interval }}>
+    <unit>
+        <{{ standard_or_custom_unit }}Unit>{{ unit }}</{{ standard_or_custom_unit }}Unit>
+    </unit>
+    {% if precision is defined %}
+    <precision/>{{ precision }}</precision>
+    {% endif %}
+    <numericDomain>
+        <numberType>real</numberType>
+    </numericDomain>
+</{{ ratio_or_interval }}>
+{% elif xsd_type == 'integer' %}
+<!-- need integer measurementScale -->
+{% endif %}
+</measurementScale>
