@@ -2,9 +2,7 @@
 {# - is_latlon #}
 {# - xsd_type #}
 {# - definition (for string types) #}
-{# - ratio_or_interval (optional, must be 'ratio' or 'interval') #}
 {# - unit (optional) #}
-{# - standard_or_custom_unit (optional, must be 'standard' or 'custom') #}
 {# - precision, in eml format (optional) #}
 <measurementScale>
 {% if xsd_type == 'date' %}
@@ -32,9 +30,9 @@
     </numericDomain>
 </interval>
 {% elif xsd_type == 'double' %}
-<{{ ratio_or_interval }}>
+<{{ unit.ratio_or_interval }}>
     <unit>
-        <{{ standard_or_custom_unit }}Unit>{{ unit }}</{{ standard_or_custom_unit }}Unit>
+        <{{ unit.standard_or_custom }}Unit>{{ unit.name }}</{{ unit.standard_or_custom }}Unit>
     </unit>
     {% if precision is defined %}
     <precision/>{{ precision }}</precision>

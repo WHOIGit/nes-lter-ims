@@ -24,8 +24,11 @@ class EmlAttribute(object):
                 self.xsd_type = xsd_type
             else:
                 self.xsd_type = xsd_type(dtype)
-            assert unit is not None, 'unit is required'
-            self.unit = unit
+            if self.xsd_type == 'string':
+                self.unit = EmlUnit('string')
+            else:
+                assert unit is not None, 'unit is required'
+                self.unit = unit
         self.precision = precision
         self.definition = definition
     def to_eml(self):
@@ -35,9 +38,7 @@ class EmlAttribute(object):
             'is_latlon': self.is_latlon,
             'xsd_type': self.xsd_type,
             'definition': self.definition,
-            'unit': self.unit.name,
-            'ratio_or_interval': self.unit.ratio_or_interval,
-            'standard_or_custom_unit': self.unit.standard_or_custom,
+            'unit': self.unit,
         }
         if self.precision is not None:
             context['precision'] = precision2eml(self.precision)
