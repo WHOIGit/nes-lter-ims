@@ -19,16 +19,16 @@ class EmlAttribute(object):
             self.xsd_type = 'double'
             self.unit = EmlUnit('degree', is_interval=True)
         else:
-            assert dtype is not None or xsd_type is not None, 'must specify type'
-            if xsd_type is not None:
+            # if no type is specified assume "double"
+            if dtype is None and xsd_type is None:
+                self.xsd_type = 'double'
+            elif xsd_type is not None:
                 self.xsd_type = xsd_type
             else:
                 self.xsd_type = xsd_type(dtype)
-            if self.xsd_type == 'string':
-                self.unit = EmlUnit('string')
-            else:
+            if self.xsd_type not in ['string', 'date']:
                 assert unit is not None, 'unit is required'
-                self.unit = unit
+            self.unit = unit
         self.precision = precision
         self.definition = definition
     def to_eml(self):
