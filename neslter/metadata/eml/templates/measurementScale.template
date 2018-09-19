@@ -23,7 +23,7 @@
         <standardUnit>degree</standardUnit>
     </unit>
     {% if precision is defined %}
-    <precision/>{{ precision }}</precision>
+    <precision>{{ precision }}</precision>
     {% endif %}
     <numericDomain>
         <numberType>real</numberType>
@@ -35,12 +35,12 @@
         <{{ unit.standard_or_custom }}Unit>{{ unit.name }}</{{ unit.standard_or_custom }}Unit>
     </unit>
     {% if precision is defined %}
-    <precision/>{{ precision }}</precision>
+    <precision>{{ precision }}</precision>
     {% endif %}
     <numericDomain>
         <numberType>real</numberType>
     </numericDomain>
-</{{ ratio_or_interval }}>
+</{{ unit.ratio_or_interval }}>
 {% elif xsd_type == 'integer' %}
 <!-- need integer measurementScale -->
 {% endif %}
