@@ -2,6 +2,8 @@ import re
 
 import numpy as np
 
+# dtype mapping to XML Schema datatypes
+
 object_type = np.dtype('O')
 datetime_type = np.dtype('<M8[ns]')
 float_type = np.dtype('float64')

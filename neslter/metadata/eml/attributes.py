@@ -2,8 +2,10 @@ import pandas as pd
 
 from .utils import get_j2_environment
 from .types import xsd_type, precision2eml
+from .units import EmlUnit
 
 def is_latlon(name):
+    """infer whether a variable is a lat/lon, based on the name"""
     return name.lower() in ['latitude', 'longitude', 'lat', 'lon']
 
 class EmlAttribute(object):
