@@ -20,7 +20,7 @@ NES-LTER vessels"""
 CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar22)(\d\d)', # Armstrong 22
     r'(ar\d\d[a-c]?)(\d\d\d)', # Armstrong 24, 28
-    r'(EN\d+).*[Cc]ast(\d\d\d)', # Endeavor
+    r'(EN\d+).*[Cc]ast(\d+)', # Endeavor
 ]
 
 def pathname2cruise_cast(pathname):
