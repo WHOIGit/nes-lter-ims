@@ -18,17 +18,18 @@ try:
 except FileExistsError:
     pass
 
-output_path = os.path.join(TEST_OUTPUT_DIR, 'attributes.xml')
+alist_xml = '<attributeList>'
 
-with open(output_path,'w') as fout:
-    print('<attributeList>', file=fout)
-    for attr in attrs:
-        print(attr.to_eml(), file=fout)
-    print('</attributeList>', file=fout)
+for attr in attrs:
+    alist_xml += attr.to_eml()
+
+alist_xml += '</attributeList>'
 
 from lxml import etree as et
 
+output_path = os.path.join(TEST_OUTPUT_DIR, 'attributes.xml')
+
 parser = et.XMLParser(remove_blank_text=True)
-tree = et.parse(output_path, parser) # checks for well-formedness
+tree = et.fromstring(alist_xml, parser) # checks for well-formedness
 with open(output_path,'w') as pretty_out:
     print(et.tostring(tree, pretty_print=True).decode('utf-8'), file=pretty_out)

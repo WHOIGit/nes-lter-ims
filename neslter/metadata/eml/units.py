@@ -26,4 +26,4 @@ class EmlUnit(object):
         return j2_env.get_template(template_name)
     def to_stmml(self):
         assert self.is_custom(), 'standard units do not have stmml representations'
-        return self.get_stmml_template().render({})
+        return self._get_stmml_template().render({})

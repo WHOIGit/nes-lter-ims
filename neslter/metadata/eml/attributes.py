@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .utils import get_j2_environment
+from .utils import get_j2_environment, pretty_print_xml
 from .types import xsd_type, precision2eml
 from .units import EmlUnit
 
@@ -31,7 +31,7 @@ class EmlAttribute(object):
             self.unit = unit
         self.precision = precision
         self.definition = definition
-    def to_eml(self):
+    def to_eml(self, pretty_print=True):
         j2_env = get_j2_environment()
         context = {
             'name': self.name,
@@ -43,4 +43,8 @@ class EmlAttribute(object):
         if self.precision is not None:
             context['precision'] = precision2eml(self.precision)
         template = j2_env.get_template('attribute.template')
-        return template.render(context)
+        xml = template.render(context)
+        if pretty_print:
+            return pretty_print_xml(xml)
+        else:
+            return xml

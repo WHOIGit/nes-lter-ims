@@ -216,7 +216,7 @@ def compile_btl_files(in_dir, add_depth=True):
             cr, ca = pathname2cruise_cast(path)
         except ValueError:
             warnings.warn('cannot parse cruise and cast from "{}"'.format(path))
-        df = parse_btl(path)
+        df = parse_btl(path, add_depth=add_depth)
         if compiled_df is None:
             compiled_df = df
         else:
