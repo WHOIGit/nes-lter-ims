@@ -44,14 +44,14 @@ class EmlAttribute(object):
     def date(name, format=None, **kw):
         return EmlAttribute(name, EmlMeasurementScale.date(format=format), **kw)
     @staticmethod
-    def lat_lon(name, precision=None, **kw):
+    def degree(name, precision=None, **kw):
         return EmlAttribute(name, EmlMeasurementScale.degree(precision=precision), **kw)
     @staticmethod
     def latitude(**kw):
-        return EmlAttribute.lat_lon('latitiude', **kw)
+        return EmlAttribute.degree('latitiude', **kw)
     @staticmethod
     def longitude(**kw):
-        return EmlAttribute.lat_lon('longitude', **kw)
+        return EmlAttribute.degree('longitude', **kw)
     @staticmethod
     def integer(name, is_interval=False, **kw):
         return EmlAttribute(name, EmlMeasurementScale.integer(is_interval=is_interval), **kw)
