@@ -2,49 +2,56 @@ import pandas as pd
 
 from .utils import get_j2_environment, pretty_print_xml
 from .types import xsd_type, precision2eml
-from .units import EmlUnit
+from .units import EmlUnit, EmlMeasurementScale
 
 def is_latlon(name):
     """infer whether a variable is a lat/lon, based on the name"""
     return name.lower() in ['latitude', 'longitude', 'lat', 'lon']
 
 class EmlAttribute(object):
-    def __init__(self, name, dtype=None, xsd_type=None, unit=None,
-        definition='', precision=None, infer_latlon=True):
+    def __init__(self, name, measurement_scale=None, definition='', infer_latlon=True):
         assert name is not None, 'name required'
         self.name = name
-        if infer_latlon:
-            self.is_latlon = is_latlon(name)
+        self.is_latlon = is_latlon(name)
         if self.is_latlon:
-            self.xsd_type = 'double'
-            self.unit = EmlUnit('degree', is_interval=True)
+            self.measurement_scale = EmlMeasurementScale.degree()
         else:
-            # if no type is specified assume "double"
-            if dtype is None and xsd_type is None:
-                self.xsd_type = 'double'
-            elif xsd_type is not None:
-                self.xsd_type = xsd_type
-            else:
-                self.xsd_type = xsd_type(dtype)
-            if self.xsd_type not in ['string', 'date']:
-                assert unit is not None, 'unit is required'
-            self.unit = unit
-        self.precision = precision
+            self.measurement_scale = measurement_scale
         self.definition = definition
     def to_eml(self, pretty_print=True):
         j2_env = get_j2_environment()
-        context = {
-            'name': self.name,
-            'is_latlon': self.is_latlon,
-            'xsd_type': self.xsd_type,
-            'definition': self.definition,
-            'unit': self.unit,
-        }
-        if self.precision is not None:
-            context['precision'] = precision2eml(self.precision)
         template = j2_env.get_template('attribute.template')
-        xml = template.render(context)
+        xml = template.render({
+            'attr': self,
+            'ms': self.measurement_scale
+            })
         if pretty_print:
             return pretty_print_xml(xml)
         else:
             return xml
+    def __str__(self):
+        return '<EmlAttribute: {}>'.format(self.name)
+    def __repr__(self):
+        return self.__str__()
+    # useful constructors
+    @staticmethod
+    def string(name, definition=''):
+        return EmlAttribute(name, EmlMeasurementScale.string(definition=definition), definition=definition)
+    @staticmethod
+    def real(name, unit=None, is_interval=False, **kw):
+        return EmlAttribute(name, EmlMeasurementScale.real(unit=unit, is_interval=is_interval), **kw)
+    @staticmethod
+    def date(name, format=None, **kw):
+        return EmlAttribute(name, EmlMeasurementScale.date(format=format), **kw)
+    @staticmethod
+    def lat_lon(name, precision=None, **kw):
+        return EmlAttribute(name, EmlMeasurementScale.degree(precision=precision), **kw)
+    @staticmethod
+    def latitude(**kw):
+        return EmlAttribute.lat_lon('latitiude', **kw)
+    @staticmethod
+    def longitude(**kw):
+        return EmlAttribute.lat_lon('longitude', **kw)
+    @staticmethod
+    def integer(name, is_interval=False, **kw):
+        return EmlAttribute(name, EmlMeasurementScale.integer(is_interval=is_interval), **kw)
