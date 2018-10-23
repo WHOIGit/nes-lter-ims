@@ -46,6 +46,18 @@ class EmlMeasurementScale(object):
         self.is_date = is_date
         self.precision = precision
         self.definition = definition
+    def __repr__(self):
+        if self.is_date:
+            desc = 'date'
+        elif self.is_string:
+            desc = 'string'
+        elif self.is_real:
+            desc = 'real {}'.format(self.ratio_or_interval)
+        elif self.is_integer:
+            desc = 'integer'
+        else:
+            desc = '' # don't raise an error in __repr__
+        return '<EmlMeasurementScale {}>'.format(desc)
     @property
     def xsd_type(self):
         if self.is_string:
@@ -72,5 +84,5 @@ class EmlMeasurementScale(object):
         return EmlMeasurementScale(is_interval=True, numeric_domain='real', unit='degree',
             precision=precision)
     @staticmethod
-    def integer(is_interval=False):
-        return EmlMeasurementScale(numeric_domain='integer', is_interval=is_interval)
+    def integer(unit=None, is_interval=False):
+        return EmlMeasurementScale(unit=unit, numeric_domain='integer', is_interval=is_interval)
