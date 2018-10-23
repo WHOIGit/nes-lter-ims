@@ -2,6 +2,7 @@ import os
 
 from neslter.metadata.eml.units import EmlUnit
 from neslter.metadata.eml.attributes import EmlAttribute
+from neslter.metadata.eml.utils import pretty_print_xml
 
 attrs = [
     EmlAttribute.real('distance', unit='meter'),
@@ -29,7 +30,5 @@ from lxml import etree as et
 
 output_path = os.path.join(TEST_OUTPUT_DIR, 'attributes.xml')
 
-parser = et.XMLParser(remove_blank_text=True)
-tree = et.fromstring(alist_xml, parser) # checks for well-formedness
 with open(output_path,'w') as pretty_out:
-    print(et.tostring(tree, pretty_print=True).decode('utf-8'), file=pretty_out)
+    print(pretty_print_xml(alist_xml), file=pretty_out)
