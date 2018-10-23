@@ -4,11 +4,11 @@ from neslter.metadata.eml.units import EmlUnit
 from neslter.metadata.eml.attributes import EmlAttribute
 
 attrs = [
-    EmlAttribute('distance', unit=EmlUnit('meter')),
-    EmlAttribute('concentration', unit=EmlUnit('microMolePerLiter')),
-    EmlAttribute('notes', xsd_type='string', definition='any relevant comments'),
-    EmlAttribute('latitude', precision=4),
-    EmlAttribute('timestamp', xsd_type='date'),
+    EmlAttribute.real('distance', unit='meter'),
+    EmlAttribute.real('concentration', unit='microMolePerLiter'),
+    EmlAttribute.string('notes', definition='any relevant comments'),
+    EmlAttribute.latitude(precision=4),
+    EmlAttribute.date('timestamp'),
 ]
 
 TEST_OUTPUT_DIR = './test-output'
