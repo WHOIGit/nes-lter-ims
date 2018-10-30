@@ -19,10 +19,10 @@ def validate_chl(df):
     expected_phaeo = ( q * p / (p - 1) * (p * v - u) * k / i ) / n
     assert np.allclose(df['phaeo'], expected_phaeo), 'unexpected phaeo value(s)'
 
-def average_replicates(chl, replicates=['a','b'], var='chl', over='all'):
+def average_replicates(chl, replicates=['a','b'], var='chl', over='any'):
     """average chl or phaeo over the given replicates. for example
-    to average phaeo over replicates 10a and 10b, call it like
-    average_replicates(df, replicates=['10a','10b'], var='phaeo')
+    to average phaeo over replicates a and b, call it like
+    average_replicates(df, replicates=['a','b'], var='phaeo')
     param: chl = parsed chl dataframe
     param: over = whether to require all replicates be present ('all')
     or whether to also average replicates if only some are present ('any')"""
@@ -31,7 +31,7 @@ def average_replicates(chl, replicates=['a','b'], var='chl', over='all'):
     replicates = set(replicates)
     rows = []
     # group by cruise, cast, niskin
-    for ccn, sdf in chl.groupby(['cruise','cast','niskin']):
+    for ccn, sdf in chl.groupby(['cruise','cast','niskin','filter_mesh_size']):
         # for each c/c/n
         # make sure we have all the given replicates
         existing_reps = set(sdf['replicate'])
@@ -47,4 +47,4 @@ def average_replicates(chl, replicates=['a','b'], var='chl', over='all'):
         # construct the output row
         row = ccn + (var_average,)
         rows.append(row)
-    return pd.DataFrame(rows, columns=['cruise','cast','niskin',var])
+    return pd.DataFrame(rows, columns=['cruise','cast','niskin','filter_mesh_size',var])
