@@ -50,10 +50,10 @@ def parse_chl(chl_xl_path):
         df[c] = pd.to_datetime(df[c])
     # now split the replicate column. '10a' becomes 'a', '<10'
     # FIXME fix this in the original Excel file
-    split_col = df.replicate.str.extract('(?P<filter_mesh_size>\d*)(?P<replicate>[abc])')
+    split_col = df.replicate.str.extract(r'(?P<filter_mesh_size>\d*)(?P<replicate>[abc])')
     def fms_replace(value, replacement):
         split_col.filter_mesh_size = split_col.filter_mesh_size.replace(value, replacement)
-    fms_replace('','WSW')
+    fms_replace('','>0') # whole seawater
     fms_replace('10','<10') # we know < a priori
     fms_replace('5','>5') # we know > a priori
     fms_replace('20','>20') # we know > a priori
