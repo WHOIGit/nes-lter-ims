@@ -222,3 +222,30 @@ def compile_btl_files(in_dir, add_depth=True):
         else:
             compiled_df = compiled_df.append(df)
     return compiled_df
+
+def btl_truth(compiled_df):
+    """extract just the following columns from a dataframe produced by
+    compile_btl_files:
+    - cruise/cast/niskin
+    - date
+    - lat/lon/depth"""
+    def sort_cruise_cast_niskin(df_with_cast_niskin):
+        # sort on those columns even though they're strings
+        df = df_with_cast_niskin.copy()
+        # the strings are just integers, so we can cast
+        df['cast'] = df['cast'].astype(int)
+        df['niskin'] = df['niskin'].astype(int)
+        df = df.sort_values(['cruise','cast','niskin'])
+        df['cast'] = df['cast'].astype(str)
+        df['niskin'] = df['niskin'].astype(str)
+        return df
+
+    # subset the columns and do some renaming
+    btl = compiled_df.loc[:,['cruise','cast','niskin','date','latitude','longitude','depsm']]
+    btl = btl.rename(columns={'depsm':'depth'})
+    # convert lat/lon to floats
+    btl['latitude'] = btl['latitude'].astype(float)
+    btl['longitude'] = btl['longitude'].astype(float)
+    # sort by cruise, cast, niskin
+    btl = sort_cruise_cast_niskin(btl)
+    return btl
