@@ -14,7 +14,7 @@ RAW_COLS = ['Cruise #:', 'Date', 'LTER\nStation', 'Cast #', 'Niskin #', 'Time\nI
        'Unnamed: 29']
 
 def parse_chl(chl_xl_path):
-    """Parse chl Excel spreadsheet"""
+    """Parse Sosik chl Excel spreadsheet"""
     raw = pd.read_excel(chl_xl_path, dtype={
             'Cast #': str,
         })
@@ -61,7 +61,32 @@ def parse_chl(chl_xl_path):
     df['filter_mesh_size'] = split_col.filter_mesh_size
     return df
 
+def parse_ryn_chl(chl_xl_path):
+    # read Excel file
+    df = pd.read_excel(chl_xl_path, dtype = {
+        'Cast #': str, # use str type for cast / niskin
+        'Niskin #': str
+    })
+     # clean column names
+    ryn_chl = clean_column_names(df, {
+        'Vol Filt (ml)': 'vol_filtered', # remove abbreviation
+        'Filter Mesh\nSize (µm)': 'filter_mesh_size',
+        'Chl (ug/l)': 'chl', # remove unit
+        'Phaeo (ug/l)': 'phaeo', # remove unit
+        'Unnamed: 29': 'comments_2', # give descriptive name
+        '90% Acetone': 'ninety_percent_acetone' # remove leading digit
+    })
+    # these dates get parsed as floating point or integers, parse as date
+    ryn_chl['date'] = pd.to_datetime(ryn_chl['date'].astype(int).astype(str))
+    # clean up variants of filter mesh size
+    ryn_chl['filter_mesh_size'] = ryn_chl['filter_mesh_size'].replace('> 5', '>5')
+    ryn_chl['filter_mesh_size'] = ryn_chl['filter_mesh_size'].replace('> 20', '>20')
+    # drop nas
+    ryn_chl_clean = dropna_except(ryn_chl, ['comments'])
+    return ryn_chl_clean
+
 def format_chl(df):
+    """format parsed chl spreadsheet"""
     return format_dataframe(df, precision={
         'ra': 2,
         'rb': 2,
