@@ -69,6 +69,11 @@ def doy_to_datetime(doy, year):
     o = pd.Timestamp(origin)
     return pd.to_datetime(doy - 1, unit='D', origin=o)
 
+def datetime_to_rfc822(dt, include_dow=False):
+    dow = '%a, ' if include_dow else ''
+    fmt = '{}%d %b %Y %H:%M:%S %z'.format(dow)
+    return dt.strftime(fmt)
+
 def format_floats(floats, precision=3, nan_string='NaN'):
     """convert an iterable of floating point numbers to
     formatted, fixed-precision strings"""
