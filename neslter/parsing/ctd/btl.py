@@ -62,9 +62,9 @@ def p_to_z(p, latitude):
     return depth_m_sw
 
 class BtlFile(CtdTextParser):
-    def __init__(self, path, parse=True):
-        super(BtlFile, self).__init__(path, parse)
+    def __init__(self, path, **kw):
         self._df = None
+        super(BtlFile, self).__init__(path, **kw)
     def to_dataframe(self):
         if self._df is not None:
             return self._df
@@ -196,19 +196,23 @@ def find_btl_file(dir, cruise, cast):
         if cr.lower() == cruise.lower() and int(ca) == int(cast):
             return BtlFile(path)
 
-def parse_btl(in_path, add_depth=True):
+def parse_btl(in_path, add_depth=True, add_lat_lon=True):
     btl = BtlFile(in_path)
     df = btl.to_dataframe()
     # add depth column if necessary
     if add_depth and DEPTH_COL not in df.columns and PRESSURE_COL in df.columns:
         df[DEPTH_COL] = btl.depths().values
+    # add lat/lon if necessary
+    if add_lat_lon and LAT_COL not in df.columns and LON_COL not in df.columns:
+        df[LAT_COL] = btl.lats().values
+        df[LON_COL] = btl.lons().values
     df = clean_column_names(df, {
         'Bottle': 'niskin'
         })
     df = df.astype({ 'cast': str, 'niskin': str })
     return df
 
-def compile_btl_files(in_dir, add_depth=True):
+def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True):
     """convert a set of bottle files to a single dataframe"""
     compiled_df = None
     for path in find_btl_files(in_dir):
@@ -216,7 +220,7 @@ def compile_btl_files(in_dir, add_depth=True):
             cr, ca = pathname2cruise_cast(path)
         except ValueError:
             warnings.warn('cannot parse cruise and cast from "{}"'.format(path))
-        df = parse_btl(path, add_depth=add_depth)
+        df = parse_btl(path, add_depth=add_depth, add_lat_lon=add_lat_lon)
         if compiled_df is None:
             compiled_df = df
         else:

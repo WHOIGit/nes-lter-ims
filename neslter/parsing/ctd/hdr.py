@@ -7,20 +7,20 @@ import pandas as pd
 from .common import CtdTextParser, pathname2cruise_cast
 
 class HdrFile(CtdTextParser):
-    def __init__(self, path, parse=True):
-        super(HdrFile, self).__init__(path, parse)
+    def __init__(self, path, **kw):
+        super(HdrFile, self).__init__(path, **kw)
     def parse(self):
         super(HdrFile, self).parse()
         self._parse_names()
     def _read_lines(self):
-        self.lines = []
+        self._lines = []
         with open(self.path, 'r', encoding='latin-1') as fin:
             for l in fin.readlines():
                 if not l.startswith('*END*'):
-                    self.lines.append(l.rstrip())
+                    self._lines.append(l.rstrip())
     def _parse_names(self):
         REGEX = r'# name \d+ = ([^:]+): ([^\[]+)(?:\[(.*)\](, .*)?)?'
-        names, defns, units, params = set(), {}, {}, {}
+        names, defns, units, params = [], {}, {}, {}
         for line in self._lines:
             if not re.search(r'^# name \d+', line):
                 continue
@@ -28,7 +28,7 @@ class HdrFile(CtdTextParser):
             defn = defn.rstrip() # FIXME do in regex?
             if param is not None:
                 param = param.lstrip(', ') # FIXME do in regex?
-            names.add(name)
+            names.append(name)
             defns[name] = defn
             units[name] = unit
             params[name] = params
@@ -47,3 +47,20 @@ def find_hdr_file(dir, cruise, cast):
         cr, ca = pathname2cruise_cast(path)
         if cr.lower() == cruise.lower() and int(ca) == int(cast):
             return HdrFile(path)
+
+def compile_hdr_files(hdr_dir):
+    cruises, casts, times, lats, lons = [], [], [], [], []
+    for path in glob(os.path.join(hdr_dir, '*.hdr')):
+        hf = HdrFile(path)
+        cruises.append(hf.cruise)
+        casts.append(hf.cast)
+        times.append(hf.time)
+        lats.append(hf.lat)
+        lons.append(hf.lon)
+    return pd.DataFrame({
+        'cruise': cruises,
+        'cast': casts,
+        'date': times,
+        'latitude': lats,
+        'longitude': lons
+    })

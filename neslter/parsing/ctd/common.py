@@ -20,7 +20,7 @@ NES-LTER vessels"""
 CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar22)(\d\d)', # Armstrong 22
     r'(ar\d\d[a-c]?)(\d\d\d)', # Armstrong 24, 28
-    r'(EN\d+).*[Cc]ast(\d+)', # Endeavor
+    r'(EN\d+).*[Cc]ast(\d+).*', # Endeavor
 ]
 
 def pathname2cruise_cast(pathname):
@@ -56,11 +56,15 @@ class TextParser(object):
 
 class CtdTextParser(TextParser):
     """parent class of BtlFile and HdrFile"""
+    def __init__(self, path, parse_filename=True, **kw):
+        self._parse_filename = parse_filename
+        super(CtdTextParser, self).__init__(path, **kw)
     def parse(self):
         super(CtdTextParser, self).parse()
         self._parse_time()
-        self._parse_cruise_cast()
         self._parse_lat_lon()
+        if self._parse_filename:
+            self._parse_cruise_cast()
     def _parse_time(self):
         line = self._line_that_matches(r'\* NMEA UTC \(Time\)')
         time = re.match(r'.*= (.*)', line).group(1)

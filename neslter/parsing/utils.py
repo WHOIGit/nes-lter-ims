@@ -62,6 +62,12 @@ def float_to_datetime(s, format='%Y%m%d'):
     convert back to datetimes"""
     return pd.to_datetime(s.astype(int).astype(str), format=format)
 
+def doy_to_datetime(doy, origin):
+    """convert a decimal day of year (e.g., 34.58275) to a datetime.
+    the origin must be specified (e.g., 2018-01-01)"""
+    o = pd.Timestamp(origin)
+    return pd.to_datetime(doy, unit='D', origin=o)
+
 def format_floats(floats, precision=3, nan_string='NaN'):
     """convert an iterable of floating point numbers to
     formatted, fixed-precision strings"""
