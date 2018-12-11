@@ -212,7 +212,7 @@ def parse_btl(in_path, add_depth=True, add_lat_lon=True):
     df = df.astype({ 'cast': str, 'niskin': str })
     return df
 
-def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True):
+def compile_btl_files(in_dir, add_depth=False, add_lat_lon=True, summary=False):
     """convert a set of bottle files to a single dataframe"""
     compiled_df = None
     for path in find_btl_files(in_dir):
@@ -225,14 +225,18 @@ def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True):
             compiled_df = df
         else:
             compiled_df = compiled_df.append(df)
-    return compiled_df
+    if summary:
+        return summarize_compiled_btl_files(compiled_df)
+    else:
+        return compiled_df
 
-def btl_truth(compiled_df):
+def summarize_compiled_btl_files(compiled_df):
     """extract just the following columns from a dataframe produced by
     compile_btl_files:
     - cruise/cast/niskin
     - date
-    - lat/lon/depth"""
+    - lat/lon/depth
+    compiled btl dataframe must include a 'depsm' column for depth"""
     def sort_cruise_cast_niskin(df_with_cast_niskin):
         # sort on those columns even though they're strings
         df = df_with_cast_niskin.copy()
