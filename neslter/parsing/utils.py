@@ -62,12 +62,14 @@ def float_to_datetime(s, format='%Y%m%d'):
     convert back to datetimes"""
     return pd.to_datetime(s.astype(int).astype(str), format=format)
 
-def doy_to_datetime(doy, year):
+def doy_to_datetime(doy, year, zero_based=False):
     """convert a decimal day of year (e.g., 34.58275) to a datetime.
-    Note that doy is 1-based"""
+    Day is one-based unless zero_based param is True"""
     origin = '{}-01-01'.format(year)
     o = pd.Timestamp(origin)
-    return pd.to_datetime(doy - 1, unit='D', origin=o)
+    if not zero_based:
+        adjusted_doy = doy - 1
+    return pd.to_datetime(adjusted_doy, unit='D', origin=o)
 
 def datetime_to_rfc822(dt, include_dow=False):
     dow = '%a, ' if include_dow else ''
