@@ -52,6 +52,8 @@ def parse_toi_discrete(toi_path):
 
 def clean_toi_discrete(toi_path):
     log = parse_toi_discrete(toi_path)
+    # infer cruise from filename, e.g.,
+    # 'En608_TOI_underwaysampletimes.txt'
     cruise_match = re.match(r'([^_]+)_.*', os.path.basename(toi_path))
     # handle cruise-specific issues
     if cruise_match:
