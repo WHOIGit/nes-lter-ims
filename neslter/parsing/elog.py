@@ -16,6 +16,7 @@ DATETIME = 'dateTime8601'
 LAT='Latitude'
 LON='Longitude'
 
+RECOVER_ACTION = 'recover'
 PUMP_TYPE = 'pump_type'
 TOI_DISCRETE = 'TOI discrete'
 UNDERWAY_SCIENCE_SEAWATER = 'Underway Science seawater'
@@ -25,7 +26,46 @@ USS_DIAPHRAGM = 'Underway Science seawater diaphragm pump'
 IMPELLER_PUMP = 'impeller pump'
 DIAPHRAGM_PUMP = 'diaphragm pump'
 
+CTD_INSTRUMENT = 'CTD911'
+
 COLUMNS = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
+
+class EventLog(object):
+    def __init__(self, df=None):
+        if df is not None:
+            self.df = df.copy()
+    @staticmethod
+    def parse(path):
+        elog = EventLog()
+        elog.df = parse_elog(path)
+        return elog
+    def add_events(self, events):
+        new_df = pd.concat([self.df, events]).sort_values(DATETIME)
+        return EventLog(new_df)
+    def remove_recover_events(self, instrument):
+        new_df = self.df[~((self.df[INSTRUMENT] == instrument) & (self.df[ACTION] == 'recover'))]
+        return EventLog(new_df)
+    def remove_instrument(self, instrument):
+        new_df = self.df[~(self.df[INSTRUMENT] == instrument)]
+        return EventLog(new_df)
+    def remove_ctd_recoveries(self):
+        return self.remove_recover_events(CTD_INSTRUMENT)
+    def to_dataframe(self):
+        return self.df
+    # accessors
+    def events_for_instrument(self, instrument):
+        return self.df[self.df[INSTRUMENT] == instrument]
+    def stations(self):
+        ctdf = self.events_for_instrument(CTD_INSTRUMENT)
+        casts = ctdf[CAST].map(cast_to_int)
+        stations = ctdf[STATION]
+        stations.index = casts
+        return stations
+    def casts(self):
+        return self.stations().index
+    def cast_to_station(self, cast):
+        """return the station, given the cast"""
+        return self.stations().loc[cast]
 
 # parse elog and clean columns / column names
 
@@ -37,8 +77,12 @@ def parse_elog(elog_path):
     df = df.sort_values(DATETIME) # sort by time
     return df
 
-def remove_recover_events(elog, instrument):
-    return elog[~((elog[INSTRUMENT] == instrument) & (elog[ACTION] == 'recover'))]
+def cast_to_int(cast):
+    """given a string naming a cast, remove non-alpha characters and parse as int"""
+    try:
+        return int(re.sub('^[^0-9]+','',cast))
+    except:
+        raise ValueError('cannot interpret cast {} as an integer'.format(cast))
 
 # parse and clean oxygen isotope data
 
