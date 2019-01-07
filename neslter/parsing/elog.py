@@ -31,11 +31,14 @@ COLUMNS = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
 
 def parse_elog(elog_path):
     assert os.path.exists(elog_path), 'elog file not found at {}'.format(elog_path)
-    df = pd.read_csv(ELOG_PATH) # defaults work
+    df = pd.read_csv(elog_path) # defaults work
     df[DATETIME] = pd.to_datetime(df[DATETIME]) # parse date column
     df = df[COLUMNS] # retain only the columns we want to use
     df = df.sort_values(DATETIME) # sort by time
     return df
+
+def remove_recover_events(elog, instrument):
+    return elog[~((elog[INSTRUMENT] == instrument) & (elog[ACTION] == 'recover'))]
 
 # parse and clean oxygen isotope data
 
