@@ -156,15 +156,15 @@ def clean_toi_discrete(toi_path):
         # with no indiciation of pump type, so include pump type in comment field
         log[INSTRUMENT] = UNDERWAY_SCIENCE_SEAWATER
         log[COMMENT] = log[PUMP_TYPE].replace({
-            0: IMPELLER_PUMP,
-            1: DIAPHRAGM_PUMP
+            1: IMPELLER_PUMP,
+            0: DIAPHRAGM_PUMP
         })
     elif cruise == EN617:
         # for en617 there are two 'instruments', one for the impeller pump
         # and one for the diaphragm pump, so use them
         log[INSTRUMENT] = log[PUMP_TYPE].replace({
-            0: USS_IMPELLER,
-            1: USS_DIAPHRAGM,
+            1: USS_IMPELLER,
+            0: USS_DIAPHRAGM,
         })
         log[COMMENT] = ''
     # station and cast are n/a to these samples       
