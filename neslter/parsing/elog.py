@@ -24,13 +24,13 @@ EN617='En617'
 
 IMPELLER_PUMP = 'impeller pump'
 DIAPHRAGM_PUMP = 'diaphragm pump'
+INCUBATION = 'Incubation'
 
 PUMP_TYPE = 'pump_type'
 TOI_DISCRETE = 'TOI discrete'
 UNDERWAY_SCIENCE_SEAWATER = 'Underway Science seawater'
 USS_IMPELLER = 'Underway Science seawater impeller'
 USS_DIAPHRAGM = 'Underway Science seawater diaphragm pump'
-
 CTD_INSTRUMENT = 'CTD911'
 
 COLUMNS = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
@@ -59,7 +59,11 @@ class EventLog(object):
             merged = hdr.merge(comments, on='Cast', how='left')
             merged['Comment'] = merged.pop('Comment_y')
             e = e.remove_instrument(CTD_INSTRUMENT).add_events(merged)
-            return e
+        # fix Incubation cast numbers
+        df = e.df
+        slic = (df[INSTRUMENT] == INCUBATION) & ~(df[CAST].isna())
+        df.loc[slic, CAST] = df.loc[slic, CAST].str.replace('C','').astype(int)
+        return EventLog(df)
     def add_events(self, events):
         new_df = pd.concat([self.df, events]).sort_values(DATETIME)
         return EventLog(new_df)
