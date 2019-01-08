@@ -50,20 +50,9 @@ class EventLog(object):
         if toi_path is not None:
             e = e.add_events(clean_toi_discrete(toi_path))
         if hdr_dir is not None:
-            hdr = e.parse_ctd_hdrs(hdr_dir)
-            e = e.remove_ctd_recoveries()
-            ctd = e.ctd_events()
-            # now merge comments
-            comments = hdr.merge(ctd, on='Cast')[['Cast','Comment_y']].drop_duplicates()
-            comments = comments[~(comments['Comment_y'].isna())]
-            merged = hdr.merge(comments, on='Cast', how='left')
-            merged['Comment'] = merged.pop('Comment_y')
-            e = e.remove_instrument(CTD_INSTRUMENT).add_events(merged)
-        # fix Incubation cast numbers
-        df = e.df
-        slic = (df[INSTRUMENT] == INCUBATION) & ~(df[CAST].isna())
-        df.loc[slic, CAST] = df.loc[slic, CAST].str.replace('C','').astype(int)
-        return EventLog(df)
+            e = e.merge_ctd_comments(hdr_dir)
+        e = e.fix_incubation_cast_numbers()
+        return e
     def add_events(self, events):
         new_df = pd.concat([self.df, events]).sort_values(DATETIME)
         return EventLog(new_df)
@@ -106,7 +95,21 @@ class EventLog(object):
         hdr.insert(7, 'Comment', np.nan)
         hdr.columns = COLUMNS
         return hdr
-
+    def fix_incubation_cast_numbers(self):
+        df = self.df.copy()
+        slic = (df[INSTRUMENT] == INCUBATION) & ~(df[CAST].isna())
+        df.loc[slic, CAST] = df.loc[slic, CAST].str.replace('C','').astype(int)
+        return EventLog(df)
+    def merge_ctd_comments(self, hdr_dir):
+        hdr = self.parse_ctd_hdrs(hdr_dir)
+        e = self.remove_ctd_recoveries()
+        ctd = e.ctd_events()
+        # now merge comments
+        comments = hdr.merge(ctd, on='Cast')[['Cast','Comment_y']].drop_duplicates()
+        comments = comments[~(comments['Comment_y'].isna())]
+        merged = hdr.merge(comments, on='Cast', how='left')
+        merged['Comment'] = merged.pop('Comment_y')
+        return e.remove_instrument(CTD_INSTRUMENT).add_events(merged)
 
 # parse elog and clean columns / column names
 
