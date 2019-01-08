@@ -1,11 +1,12 @@
 import os
 
+import numpy as np
 import pandas as pd
 import re
 
+from neslter.parsing.ctd.hdr import compile_hdr_files
+
 # keys
-EN608='En608'
-EN617='En617'
 
 INSTRUMENT = 'Instrument'
 ACTION = 'Action'
@@ -17,14 +18,18 @@ LAT='Latitude'
 LON='Longitude'
 
 RECOVER_ACTION = 'recover'
+
+EN608='En608'
+EN617='En617'
+
+IMPELLER_PUMP = 'impeller pump'
+DIAPHRAGM_PUMP = 'diaphragm pump'
+
 PUMP_TYPE = 'pump_type'
 TOI_DISCRETE = 'TOI discrete'
 UNDERWAY_SCIENCE_SEAWATER = 'Underway Science seawater'
 USS_IMPELLER = 'Underway Science seawater impeller'
 USS_DIAPHRAGM = 'Underway Science seawater diaphragm pump'
-
-IMPELLER_PUMP = 'impeller pump'
-DIAPHRAGM_PUMP = 'diaphragm pump'
 
 CTD_INSTRUMENT = 'CTD911'
 
@@ -39,6 +44,22 @@ class EventLog(object):
         elog = EventLog()
         elog.df = parse_elog(path)
         return elog
+    @staticmethod
+    def process(elog_path, hdr_dir=None, toi_path=None):
+        e = EventLog.parse(elog_path)
+        if toi_path is not None:
+            e = e.add_events(clean_toi_discrete(toi_path))
+        if hdr_dir is not None:
+            hdr = e.parse_ctd_hdrs(hdr_dir)
+            e = e.remove_ctd_recoveries()
+            ctd = e.ctd_events()
+            # now merge comments
+            comments = hdr.merge(ctd, on='Cast')[['Cast','Comment_y']]
+            comments = comments[~(comments['Comment_y'].isna())]
+            merged = hdr.merge(comments, on='Cast', how='left')
+            merged['Comment'] = merged.pop('Comment_y')
+            e = e.remove_instrument(CTD_INSTRUMENT).add_events(merged)
+            return e
     def add_events(self, events):
         new_df = pd.concat([self.df, events]).sort_values(DATETIME)
         return EventLog(new_df)
@@ -50,6 +71,10 @@ class EventLog(object):
         return EventLog(new_df)
     def remove_ctd_recoveries(self):
         return self.remove_recover_events(CTD_INSTRUMENT)
+    def ctd_events(self):
+        ctd = self.events_for_instrument(CTD_INSTRUMENT).copy()
+        ctd[CAST] = ctd[CAST].map(cast_to_int)
+        return ctd
     def to_dataframe(self):
         return self.df
     # accessors
@@ -66,6 +91,18 @@ class EventLog(object):
     def cast_to_station(self, cast):
         """return the station, given the cast"""
         return self.stations().loc[cast]
+    # parse hdr files to generate CTD deploy events
+    def parse_ctd_hdrs(self, hdr_dir):
+        assert os.path.exists(hdr_dir), 'CTD hdr directory not found at {}'.format(hdr_dir)
+        hdr = compile_hdr_files(hdr_dir)
+        hdr = hdr[['date','cast','latitude','longitude']]
+        hdr.insert(1, 'Station', hdr['cast'].map(lambda c: self.cast_to_station(c)))
+        hdr.insert(1, 'Action', 'deploy')
+        hdr.insert(1, 'Instrument', 'CTD911')
+        hdr.insert(7, 'Comment', np.nan)
+        hdr.columns = COLUMNS
+        return hdr
+
 
 # parse elog and clean columns / column names
 
