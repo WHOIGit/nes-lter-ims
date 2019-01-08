@@ -54,7 +54,7 @@ class EventLog(object):
             e = e.remove_ctd_recoveries()
             ctd = e.ctd_events()
             # now merge comments
-            comments = hdr.merge(ctd, on='Cast')[['Cast','Comment_y']]
+            comments = hdr.merge(ctd, on='Cast')[['Cast','Comment_y']].drop_duplicates()
             comments = comments[~(comments['Comment_y'].isna())]
             merged = hdr.merge(comments, on='Cast', how='left')
             merged['Comment'] = merged.pop('Comment_y')
