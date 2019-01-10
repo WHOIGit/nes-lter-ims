@@ -19,8 +19,8 @@ LON='Longitude'
 
 RECOVER_ACTION = 'recover'
 
-EN608='En608'
-EN617='En617'
+EN608='en608'
+EN617='en617'
 
 IMPELLER_PUMP = 'impeller pump'
 DIAPHRAGM_PUMP = 'diaphragm pump'
@@ -151,7 +151,7 @@ def clean_toi_discrete(toi_path):
         cruise = cruise_match.group(1)
     else:
         cruise = None
-    if cruise == EN608:
+    if cruise == EN608.capitalize():
         # for en608 the 'instrument' is always underway science seawater
         # with no indiciation of pump type, so include pump type in comment field
         log[INSTRUMENT] = UNDERWAY_SCIENCE_SEAWATER
@@ -159,7 +159,7 @@ def clean_toi_discrete(toi_path):
             1: IMPELLER_PUMP,
             0: DIAPHRAGM_PUMP
         })
-    elif cruise == EN617:
+    elif cruise == EN617.capitalize():
         # for en617 there are two 'instruments', one for the impeller pump
         # and one for the diaphragm pump, so use them
         log[INSTRUMENT] = log[PUMP_TYPE].replace({
