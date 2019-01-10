@@ -105,3 +105,14 @@ def format_dataframe(df, precision={}, nan_string='NaN'):
     # FIXME deal with int missing values
     # FIXME deal with string missing values
     return df
+
+# pandas utilities
+
+def delete_row(df, ix):
+    df = df.copy()
+    return df[df.index != ix]
+
+def update_cell(df, ix, col, new_value):
+    df = df.copy()
+    df.at[ix, col] = new_value
+    return df

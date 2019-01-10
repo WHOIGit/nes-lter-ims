@@ -83,7 +83,10 @@ class EventLog(object):
         return self.stations().index
     def cast_to_station(self, cast):
         """return the station, given the cast"""
-        return self.stations().loc[cast]
+        if cast in self.stations().index:
+            return self.stations().loc[cast]
+        else:
+            return np.nan()
     # parse hdr files to generate CTD deploy events
     def parse_ctd_hdrs(self, hdr_dir):
         assert os.path.exists(hdr_dir), 'CTD hdr directory not found at {}'.format(hdr_dir)

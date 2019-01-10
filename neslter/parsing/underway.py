@@ -4,6 +4,7 @@ import os
 from glob import glob
 
 import pandas as pd
+import numpy as np
 
 from neslter.parsing.ctd.hdr import HdrFile
 from neslter.parsing.utils import clean_column_names, doy_to_datetime
@@ -17,6 +18,8 @@ class Underway(object):
     def parse(csv_dir, resolution=60):
         df = compile_underway(csv_dir, resolution)
         return Underway(df)
+    def to_dataframe(self):
+        return self.df
     # accessors
     def gps_models(self):
         models = []
@@ -31,9 +34,27 @@ class Underway(object):
             gps_model = self.gps_models()[0]
         lat_col = 'gps_{}_latitude'.format(gps_model)
         lon_col = 'gps_{}_longitude'.format(gps_model)
-        index = max(0, self.df.index.searchsorted(time) - 1)
+        index = max(0, self.df.index.searchsorted(pd.to_datetime(time)) - 1)
         row = self.df.iloc[index]
         return row[lat_col], row[lon_col]
+    def add_locations(self, df, time_column, lat_col, lon_col):
+        assert time_column in df.columns, 'no such column {}'.format(time_column)
+        assert lat_col in df.columns, 'no such column {}'.format(lat_col)
+        assert lon_col in df.columns, 'no such column {}'.format(lon_col)
+        assert len(df.index) == len(df.index.unique()), 'index must be unique'
+        df = df.copy()
+        mods = []
+        for row in df.itertuples():
+            ix = getattr(row, 'Index')
+            dt = getattr(row, time_column)
+            mods.append((ix, self.time_to_location(dt)))
+        for ix, (new_lat, new_lon) in mods:
+            lat = df.at[ix, lat_col]
+            lon = df.at[ix, lon_col]
+            if np.isnan(lat) and np.isnan(lon):
+                df.at[ix, lat_col] = new_lat
+                df.at[ix, lon_col] = new_lon
+        return df
 
 def compile_underway(csv_dir, resolution=60):
     """compile daily underway files"""
