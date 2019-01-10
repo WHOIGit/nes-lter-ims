@@ -76,6 +76,14 @@ def datetime_to_rfc822(dt, include_dow=False):
     fmt = '{}%d %b %Y %H:%M:%S %z'.format(dow)
     return dt.strftime(fmt)
 
+def date_time_to_datetime(date, time):
+    try:
+        # for Series objects (e.g., DataFrame columns)
+        return pd.to_timedelta(time.astype(str)) + pd.to_datetime(date)
+    except AttributeError:
+        # for a single date/time
+        return pd.to_timedelta(time) + pd.to_datetime(date)
+
 def format_floats(floats, precision=3, nan_string='NaN'):
     """convert an iterable of floating point numbers to
     formatted, fixed-precision strings"""
