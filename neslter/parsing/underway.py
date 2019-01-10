@@ -29,7 +29,8 @@ class Underway(object):
                 models.append(m.group(1))
         return models
     def time_to_location(self, time, gps_model=None):
-        """returns lat, lon"""
+        """returns lat, lon given time. picks the most recent location relative
+        to the given timestamp"""
         if gps_model is None:
             gps_model = self.gps_models()[0]
         lat_col = 'gps_{}_latitude'.format(gps_model)
@@ -37,7 +38,10 @@ class Underway(object):
         index = max(0, self.df.index.searchsorted(pd.to_datetime(time)) - 1)
         row = self.df.iloc[index]
         return row[lat_col], row[lon_col]
-    def add_locations(self, df, time_column, lat_col, lon_col):
+    def add_locations(self, df, time_column, lat_col, lon_col, gps_model=None):
+        """given a dataframe with a datetime column and lat lon cols,
+        fill in any NaNs in the lat/lon columns with the results of
+        time_to_location"""
         assert time_column in df.columns, 'no such column {}'.format(time_column)
         assert lat_col in df.columns, 'no such column {}'.format(lat_col)
         assert lon_col in df.columns, 'no such column {}'.format(lon_col)
@@ -47,7 +51,7 @@ class Underway(object):
         for row in df.itertuples():
             ix = getattr(row, 'Index')
             dt = getattr(row, time_column)
-            mods.append((ix, self.time_to_location(dt)))
+            mods.append((ix, self.time_to_location(dt, gps_model)))
         for ix, (new_lat, new_lon) in mods:
             lat = df.at[ix, lat_col]
             lon = df.at[ix, lon_col]
