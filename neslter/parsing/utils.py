@@ -1,4 +1,5 @@
 import re
+import os
 
 import numpy as np
 import pandas as pd
@@ -108,6 +109,14 @@ def format_dataframe(df, precision={}, nan_string='NaN'):
     # FIXME deal with int missing values
     # FIXME deal with string missing values
     return df
+
+# os utilities
+
+def safe_makedirs(path):
+    try:
+        os.makedirs(path)
+    except FileExistsError:
+        return
 
 # pandas utilities
 

@@ -1,4 +1,5 @@
 import os
+from .utils import safe_makedirs
 
 DATA_ROOT = r'D:\nes-lter-ims-test-data\root'
 
@@ -14,8 +15,13 @@ class Resolver(object):
     def raw_directory(self, data_type, cruise=ALL, check_exists=True):
         raw_dir = os.path.join(self.data_root, RAW, cruise, data_type)
         if check_exists and not os.path.exists(raw_dir):
-            raise ValueError('{} directory not found for {}'.format(data_type, cruise))
+            raise KeyError('{} directory not found for {}'.format(data_type, cruise))
         return raw_dir
+    def processed_directory(self, data_type, cruise=ALL, makedirs=False):
+        proc_dir = os.path.join(self.data_root, RAW, cruise, data_type)
+        if makedirs:
+            safe_makedirs(proc_dir)
+        return proc_dir
 
 ENDEAVOR = 'Endeavor'
 ARMSTRONG = 'Armstrong'
