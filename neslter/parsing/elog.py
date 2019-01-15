@@ -48,6 +48,7 @@ class EventLog(object):
     def process(elog_path, hdr_dir=None, toi_path=None):
         e = EventLog.parse(elog_path)
         if toi_path is not None:
+            e = e.remove_action(TOI_DISCRETE)
             e = e.add_events(clean_toi_discrete(toi_path))
         if hdr_dir is not None:
             e = e.merge_ctd_comments(hdr_dir)
@@ -57,10 +58,16 @@ class EventLog(object):
         new_df = pd.concat([self.df, events]).sort_values(DATETIME)
         return EventLog(new_df)
     def remove_recover_events(self, instrument):
-        new_df = self.df[~((self.df[INSTRUMENT] == instrument) & (self.df[ACTION] == 'recover'))]
-        return EventLog(new_df)
+        return self.remove_action(RECOVER_ACTION, instrument)
     def remove_instrument(self, instrument):
         new_df = self.df[~(self.df[INSTRUMENT] == instrument)]
+        return EventLog(new_df)
+    def remove_action(self, action, instrument=None):
+        new_df = self.df.copy()
+        if instrument is not None:
+            new_df = new_df[~((new_df[ACTION] == action) & (new_df[INSTRUMENT] == instrument))]
+        else:
+            new_df = new_df[new_df[ACTION] != action]
         return EventLog(new_df)
     def remove_ctd_recoveries(self):
         return self.remove_recover_events(CTD_INSTRUMENT)

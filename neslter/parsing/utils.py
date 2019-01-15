@@ -7,7 +7,7 @@ import pandas as pd
 
 def clean_column_name(colname):
     """convert column names to lowercase with underbars"""
-    colname = colname.lower()
+    colname = colname.lower().rstrip().lstrip()
     colname = re.sub(r'[^a-z0-9_]+','_',colname) # sub _ for nonalpha chars
     colname = re.sub(r'_$','',colname)  # remove trailing _
     colname = re.sub(r'^([0-9])',r'_\1',colname) # insert _ before leading digit
@@ -60,7 +60,10 @@ def float_to_datetime(s, format='%Y%m%d'):
     """pandas will interpret some datetime formats as floats, e.g.,
     '20180830' will be parsed as the float 20180830.0.
     convert back to datetimes"""
-    return pd.to_datetime(s.astype(int).astype(str), format=format)
+    def convert(value):
+        return pd.to_datetime(str(int(value)), format=format)
+    return s.map(convert, na_action='ignore')
+    # return pd.to_datetime(s.astype(int).astype(str), format=format)
 
 def doy_to_datetime(doy, year, zero_based=False):
     """convert a decimal day of year (e.g., 34.58275) to a datetime.

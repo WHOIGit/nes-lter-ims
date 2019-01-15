@@ -44,7 +44,9 @@ class HdrFile(CtdTextParser):
 
 def find_hdr_file(dir, cruise, cast):
     for path in glob(os.path.join(dir, '*.hdr')):
-        cr, ca = pathname2cruise_cast(path)
+        cr, ca = pathname2cruise_cast(path, skip_bad_filenames=True)
+        if cr is None:
+            continue
         if cr.lower() == cruise.lower() and int(ca) == int(cast):
             return HdrFile(path)
 
@@ -57,10 +59,12 @@ def compile_hdr_files(hdr_dir):
         times.append(hf.time)
         lats.append(hf.lat)
         lons.append(hf.lon)
-    return pd.DataFrame({
+    df = pd.DataFrame({
         'cruise': cruises,
         'cast': casts,
         'date': times,
         'latitude': lats,
         'longitude': lons
-    })
+    }).dropna()
+    df['cast'] = df['cast'].astype(int)
+    return df.sort_values('cast')

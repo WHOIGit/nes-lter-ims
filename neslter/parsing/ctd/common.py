@@ -18,27 +18,30 @@ cruise number and cast number. each is a special
 case for a different naming convention used on
 NES-LTER vessels"""
 CRUISE_CAST_PATHNAME_REGEXES = [
-    r'(ar22)(\d\d)\.hdr', # Armstrong 22
-    r'(ar\d\d[a-c]?)(\d\d\d)\.hdr', # Armstrong 24, 28
-    r'(EN\d+).*[Cc]ast([^_]+).*\.hdr', # Endeavor
+    r'(ar22)(\d\d)\.', # Armstrong 22
+    r'(ar\d\d[a-c]?)(\d\d\d)\.', # Armstrong 24, 28
+    r'(EN\d+).*[Cc]ast([^_]+)\.', # Endeavor
 ]
 
-def pathname2cruise_cast(pathname):
+def pathname2cruise_cast(pathname, skip_bad_filenames=True):
     fn = os.path.basename(pathname)
     for regex in CRUISE_CAST_PATHNAME_REGEXES:
         m = re.match(regex, fn)
         if m is not None:
             cruise, cast = m.groups()
             cruise = cruise.upper()
-            # FIX problem with EN608
-            if cruise == 'EN608' and cast == '13b':
+            # FIXME hardcoded to deal with problem with EN608 cast "13"
+            if cruise.lower() == 'en608' and cast == '13b':
                 cast = 14
             try:
                 cast = int(cast)
             except ValueError:
                 raise ValueError('invalid cast number {}'.format(cast))
             return cruise, cast
-    raise ValueError('unable to determine cruise and cast from "{}"'.format(pathname))
+    if not skip_bad_filenames:
+        raise ValueError('unable to determine cruise and cast from "{}"'.format(pathname))
+    else:
+        return None, None
 
 class TextParser(object):
     def __init__(self, path, parse=True, encoding='latin-1'):

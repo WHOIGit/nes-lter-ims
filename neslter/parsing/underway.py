@@ -2,25 +2,41 @@ import re
 from io import StringIO
 import os
 from glob import glob
+import warnings
 
 import pandas as pd
 import numpy as np
 
+from .files import Resolver, cruise_to_vessel, ENDEAVOR, ARMSTRONG
+
 from neslter.parsing.ctd.hdr import HdrFile
-from neslter.parsing.utils import clean_column_names, doy_to_datetime
+from neslter.parsing.utils import clean_column_names, doy_to_datetime, date_time_to_datetime
 
-DATETIME = 'datetime_iso8601'
+DATETIME_ISO8601 = 'DateTime_ISO8601'
+DATETIME = 'datetime'
 
-class Underway(object):
-    def __init__(self, df):
-        self.df = df.copy()
-    @staticmethod
-    def parse(csv_dir, resolution=60):
-        df = compile_underway(csv_dir, resolution)
-        return Underway(df)
+ENDEAVOR_GPS_MODEL = 'furuno'
+
+class _EndeavorParser(object):
+    def __init__(self, csv_dir, resolution=60):
+        self.df = self.parse(csv_dir, resolution)
+    def parse(self, csv_dir, resolution=60):
+        """compile daily underway files"""
+        assert resolution in [1, 60] # not aware of any other resolutions
+        dfs = []
+        for fn in os.listdir(csv_dir):
+            # files have names like Data60Sec_Daily_20180204-000000.csv
+            if not re.match(r'Data{}Sec_Daily_\d+-\d+\.csv'.format(resolution), fn):
+                continue
+            path = os.path.join(csv_dir, fn)
+            dfs.append(pd.read_csv(path, comment='#'))
+        df = clean_column_names(pd.concat(dfs), {
+                DATETIME_ISO8601: DATETIME
+            })
+        df.index = pd.to_datetime(df[DATETIME])
+        return df
     def to_dataframe(self):
         return self.df
-    # accessors
     def gps_models(self):
         models = []
         for name in self.df.columns:
@@ -28,15 +44,52 @@ class Underway(object):
             if m:
                 models.append(m.group(1))
         return models
-    def time_to_location(self, time, gps_model=None):
-        """returns lat, lon given time. picks the most recent location relative
-        to the given timestamp"""
+    def lat_lon_columns(self, gps_model=None):
         if gps_model is None:
             gps_model = self.gps_models()[0]
         lat_col = 'gps_{}_latitude'.format(gps_model)
         lon_col = 'gps_{}_longitude'.format(gps_model)
-        index = max(0, self.df.index.searchsorted(pd.to_datetime(time)) - 1)
-        row = self.df.iloc[index]
+        return lat_col, lon_col
+
+class _ArmstrongParser(object):
+    def __init__(self, csv_dir):
+        self.df = self.parse(csv_dir)
+    def parse(self, csv_dir, resolution=60):
+        assert resolution == 60, 'unsupported resolution {}'.format(resolution)
+        REGEX = r'AR\d+\d{4}_\d{4}.csv'
+        dfs = []
+        for f in os.listdir(csv_dir):
+            if re.match(REGEX, f):
+                df = pd.read_csv(os.path.join(csv_dir, f), skiprows=1, na_values=[' NAN', ' NODATA'])
+                dfs.append(df)     
+        df = clean_column_names(pd.concat(dfs, ignore_index=True))
+        df.insert(0, DATETIME, date_time_to_datetime(df.pop('date_gmt'), df.pop('time_gmt')))
+        df.index = df[DATETIME]
+        return df
+    def to_dataframe(self):
+        return self.df   
+    def lat_lon_columns(self, **kw):
+        if 'gps_model' in kw and kw['gps_model'] is not None:
+            warnings.warn('specifying GPS model for Armstrong data has no effect')
+        return 'dec_lat', 'dec_lon'
+
+class Underway(object):
+    def __init__(self, cruise, resolution=60):
+        csv_dir = Resolver().raw_directory('underway', cruise)
+        self.vessel = cruise_to_vessel(cruise)
+        if self.vessel == ENDEAVOR:
+            self.parser = _EndeavorParser(csv_dir, resolution)
+        elif self.vessel == ARMSTRONG:
+            self.parser = _ArmstrongParser(csv_dir)
+    def to_dataframe(self):
+        return self.parser.to_dataframe()
+    # accessors
+    def time_to_location(self, time, gps_model=None):
+        """returns lat, lon given time. picks the most recent location relative
+        to the given timestamp"""
+        lat_col, lon_col = self.parser.lat_lon_columns(gps_model=gps_model)
+        index = max(0, self.parser.df.index.searchsorted(pd.to_datetime(time)) - 1)
+        row = self.parser.df.iloc[index]
         return row[lat_col], row[lon_col]
     def add_locations(self, df, time_column, lat_col, lon_col, gps_model=None):
         """given a dataframe with a datetime column and lat lon cols,
@@ -59,36 +112,3 @@ class Underway(object):
                 df.at[ix, lat_col] = new_lat
                 df.at[ix, lon_col] = new_lon
         return df
-
-def compile_underway(csv_dir, resolution=60):
-    """compile daily underway files"""
-    assert resolution in [1, 60] # not aware of any other resolutions
-    dfs = []
-    for fn in os.listdir(csv_dir):
-        # files have names like Data60Sec_Daily_20180204-000000.csv
-        if not re.match(r'Data{}Sec_Daily_\d+-\d+\.csv'.format(resolution), fn):
-            continue
-        path = os.path.join(csv_dir, fn)
-        dfs.append(pd.read_csv(path, comment='#'))
-    df = clean_column_names(pd.concat(dfs))
-    df.index = pd.to_datetime(df[DATETIME])
-    return df
-
-def read_cnv(path, year):
-    """read a .cnv file containing underway data.
-    deprecated, use compile_underway instead"""
-    assert os.path.exists(path)
-    # skip header lines
-    with open(path) as fin:
-        lines = [l for l in fin.readlines() if not re.match('^[#*]', l)]
-    txt = ''.join(lines)
-    # read the space-delimited data
-    # FIXME might actually be fixed-width
-    df = pd.read_csv(StringIO(txt), delimiter=r'\s+', header=None)
-    # read header data to get column names
-    hdr = HdrFile(path, parse_filename=False)
-    df.columns = hdr.names
-    df = clean_column_names(df)
-    # convert dates from decimal day of year to proper datetimes
-    df['date'] = doy_to_datetime(df.timej, year)
-    return df

@@ -189,9 +189,8 @@ def find_btl_files(dir):
 
 def find_btl_file(dir, cruise, cast):
     for path in find_btl_files(dir):
-        try:
-            cr, ca = pathname2cruise_cast(path)
-        except ValueError:
+        cr, ca = pathname2cruise_cast(path, skip_bad_filenames=True)
+        if cr is None:
             continue
         if cr.lower() == cruise.lower() and int(ca) == int(cast):
             return BtlFile(path)
@@ -216,10 +215,10 @@ def compile_btl_files(in_dir, add_depth=False, add_lat_lon=True, summary=False):
     """convert a set of bottle files to a single dataframe"""
     compiled_df = None
     for path in find_btl_files(in_dir):
-        try:
-            cr, ca = pathname2cruise_cast(path)
-        except ValueError:
+        cr, ca = pathname2cruise_cast(path, skip_bad_filenames=True)
+        if cr is None:
             warnings.warn('cannot parse cruise and cast from "{}"'.format(path))
+            continue
         df = parse_btl(path, add_depth=add_depth, add_lat_lon=add_lat_lon)
         if compiled_df is None:
             compiled_df = df
