@@ -1,5 +1,5 @@
 from ..files import Resolver
-from .btl import compile_btl_files
+from .btl import compile_btl_files, summarize_compiled_btl_files
 from .hdr import compile_hdr_files
 from .asc import parse_cast
 
@@ -14,5 +14,7 @@ class Ctd(object):
         return parse_cast(self.dir, cast_number)
     def bottles(self, **kw):
         return compile_btl_files(self.dir, **kw)
+    def bottle_summary(self, **kw):
+        return summarize_compiled_btl_files(self.bottles())
     def metadata(self):
         return compile_hdr_files(self.dir)
