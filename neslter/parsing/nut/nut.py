@@ -3,19 +3,17 @@ import pandas as pd
 
 from ..utils import clean_column_names, dropna_except, format_dataframe
 
-RAW_COLS = ['Number', 'Cruise', 'Cast', 'Sample ID', 'Nitrate', 'Ammonium',
+RAW_COLS = ['Nutrient \nNumber', 'Cruise', 'Cast', 'LTER \nSample ID', 'Nitrate', 'Ammonium',
        'Phosphate', 'Silicate', 'Comments']
 
 NUT_COLS = ['nitrate', 'ammonium', 'phosphate', 'silicate']
 
 def parse_nut(nut_xl_path):
     df = pd.read_excel(nut_xl_path, skiprows=[0,1])
+    print(df.columns) # FIXME debug
     assert set(df.columns) == set(RAW_COLS), 'nut spreadsheet does not contain expected columns'
-    df = clean_column_names(df, {
-        'Number': 'nutrient_number',
-        })
+    df = clean_column_names(df)
     df = dropna_except(df, ['comments'])
-    df = df.astype({ 'cast': str })
     # deal with below-detection-limit values
     # for the nut cols, add {}_bdl col with the
     # detection limit value, for all below-detection-limit
