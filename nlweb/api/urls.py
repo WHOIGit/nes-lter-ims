@@ -14,4 +14,6 @@ urlpatterns = [
     path('ctd/<cruise>/cast<int:cast>', views.CtdCastView.as_view(), name='ctd_cast_json'),
     path('underway/<cruise>.<extension>', views.UnderwayView.as_view(), name='underway'),
     path('underway/<cruise>', views.UnderwayView.as_view(), name='underway_json'),
+    path('events/<cruise>.<extension>', views.EventLogView.as_view(), name='elog'),
+    path('events/<cruise>', views.EventLogView.as_view(), name='elog_json'),
 ]

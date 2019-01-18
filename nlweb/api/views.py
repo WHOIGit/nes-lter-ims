@@ -8,6 +8,7 @@ from django.views import View
 
 from neslter.parsing.ctd import Ctd
 from neslter.parsing.underway import Underway
+from neslter.parsing.elog import EventLog
 
 def dataframe_response(df, extension='json', filename=None):
     if extension == 'json':
@@ -76,3 +77,13 @@ class UnderwayView(View):
             raise Http404(str(exc))
         df = uw.to_dataframe()
         return dataframe_response(df, extension, filename=filename)
+
+class EventLogView(View):
+    def get(self, request, cruise, extension=None):
+        if extension is None: extension = 'json'
+        filename = '{}_elog.{}'.format(cruise, extension)
+        try:
+            df = EventLog(cruise).to_dataframe()
+            return dataframe_response(df, extension, filename=filename)
+        except:
+            raise
