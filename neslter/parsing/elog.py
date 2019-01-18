@@ -106,6 +106,7 @@ class EventLog(object):
         self.remove_instrument(CTD_INSTRUMENT)
         self.add_events(merged)
     def to_dataframe(self):
+        self.df.index = range(len(self.df))
         return self.df
     # accessors
     def ctd_events(self):
@@ -139,7 +140,6 @@ class EventLog(object):
         hdr.insert(7, 'Comment', np.nan)
         hdr.columns = COLUMNS
         return hdr
-        return e.remove_instrument(CTD_INSTRUMENT).add_events(merged)
 
 # parse elog and clean columns / column names
 
