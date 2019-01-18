@@ -4,3 +4,4 @@ scipy
 xlrd
 lxml
 jinja2
+django

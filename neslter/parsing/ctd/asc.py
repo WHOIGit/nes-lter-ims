@@ -46,5 +46,8 @@ def parse_cast(asc_dir, cast=1, delimiter=';'):
         b = os.path.basename(p)
         cruise, fcast = pathname2cruise_cast(b)
         if cast == int(fcast):
-            return parse_asc(p, delimiter)
+            df = parse_asc(p, delimiter)
+            df.insert(0, 'cast', cast)
+            df.insert(0, 'cruise', cruise)
+            return df
     raise KeyError('cast not found: {} {}'.format(cruise, cast))

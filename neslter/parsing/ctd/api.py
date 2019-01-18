@@ -18,7 +18,7 @@ class Ctd(object):
         return compile_btl_files(self.dir, **kw)
     def bottle_summary(self, **kw):
         # summarize bottle data
-        return summarize_compiled_btl_files(self.bottles())
+        return self.bottles(summary=True)
     def metadata(self):
         # return basic metadata from the header files
         return compile_hdr_files(self.dir)

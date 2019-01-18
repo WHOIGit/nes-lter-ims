@@ -208,7 +208,7 @@ def parse_btl(in_path, add_depth=True, add_lat_lon=True):
     df = clean_column_names(df, {
         'Bottle': 'niskin'
         })
-    df = df.astype({ 'cast': str, 'niskin': str })
+    df = df.astype({ 'cast': int, 'niskin': int })
     return df
 
 def compile_btl_files(in_dir, add_depth=False, add_lat_lon=True, summary=False):
@@ -224,6 +224,8 @@ def compile_btl_files(in_dir, add_depth=False, add_lat_lon=True, summary=False):
             compiled_df = df
         else:
             compiled_df = compiled_df.append(df)
+        compiled_df = compiled_df.sort_values(['cast','niskin'])
+        compiled_df.index = range(len(compiled_df))
     if summary:
         return summarize_compiled_btl_files(compiled_df)
     else:
