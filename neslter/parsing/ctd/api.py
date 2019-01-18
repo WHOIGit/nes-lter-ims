@@ -9,7 +9,7 @@ class Ctd(object):
         self.dir = Resolver().raw_directory('ctd', cruise)
     def casts(self):
         # return a list of the cast numbers
-        return sorted(self.metadata()['cast'].unique())
+        return [int(i) for i in sorted(self.metadata()['cast'].unique())]
     def cast(self, cast_number):
         # return data for a specific cast
         return parse_cast(self.dir, cast_number)

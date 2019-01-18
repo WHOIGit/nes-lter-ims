@@ -3,13 +3,11 @@ from io import StringIO
 from django.shortcuts import render
 
 # Create your views here.
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.views import View
 
 from neslter.parsing.ctd import Ctd
-
-def index(request):
-    return HttpResponse("Hello, world. You're at the api index.")
+from neslter.parsing.underway import Underway
 
 def dataframe_response(df, extension='json', filename=None):
     if extension == 'json':
@@ -26,8 +24,19 @@ def dataframe_response(df, extension='json', filename=None):
 class CtdView(View):
     """abstract view for handling CTD data"""
     def ctd(self, cruise):
-        ctd = Ctd(cruise.lower())
+        try:
+            ctd = Ctd(cruise.lower())
+        except KeyError as exc:
+            # cruise not found
+            raise Http404(str(exc))
         return ctd
+
+class CtdCastsView(CtdView):
+    def get(self, request, cruise): # JSON only
+        casts = self.ctd(cruise).casts()
+        return JsonResponse({
+            'casts': casts
+        })
 
 class CtdMetadataView(CtdView):
     def get(self, request, cruise, extension=None):
@@ -56,3 +65,14 @@ class CtdCastView(CtdView):
         filename = '{}_ctd_cast{}.{}'.format(cruise, cast, extension)
         cast = self.ctd(cruise).cast(cast)
         return dataframe_response(cast, extension, filename=filename)
+
+class UnderwayView(View):
+    def get(self, request, cruise, extension=None):
+        if extension is None: extension = 'json'
+        filename = '{}_underway.{}'.format(cruise, extension)
+        try:
+            uw = Underway(cruise)
+        except KeyError as exc:
+            raise Http404(str(exc))
+        df = uw.to_dataframe()
+        return dataframe_response(df, extension, filename=filename)

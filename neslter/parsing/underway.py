@@ -82,7 +82,9 @@ class Underway(object):
         elif self.vessel == ARMSTRONG:
             self.parser = _ArmstrongParser(csv_dir)
     def to_dataframe(self):
-        return self.parser.to_dataframe()
+        df = self.parser.to_dataframe()
+        df.index = range(len(df))
+        return df
     # accessors
     def time_to_location(self, time, gps_model=None):
         """returns lat, lon given time. picks the most recent location relative
