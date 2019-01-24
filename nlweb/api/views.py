@@ -21,6 +21,8 @@ def dataframe_response(df, extension='json', filename=None):
         if filename is not None:
             resp['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
         return resp
+    else:
+        raise Http404('unsupported file type .{}'.format(extension))
 
 class CtdView(View):
     """abstract view for handling CTD data"""
@@ -83,7 +85,8 @@ class EventLogView(View):
         if extension is None: extension = 'json'
         filename = '{}_elog.{}'.format(cruise, extension)
         try:
-            df = EventLog(cruise).to_dataframe()
-            return dataframe_response(df, extension, filename=filename)
-        except:
-            raise
+            elog = EventLog(cruise)
+        except KeyError as exc:
+            raise Http404(str(exc))
+        df = elog.to_dataframe()
+        return dataframe_response(df, extension, filename=filename)
