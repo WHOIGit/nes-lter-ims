@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import re
 
+from .utils import data_table
+
 from neslter.parsing.files import Resolver
 from neslter.parsing.ctd.hdr import compile_hdr_files
 
@@ -63,6 +65,7 @@ def toi_path(cruise):
 class EventLog(object):
     def __init__(self, cruise):
         self.parse(cruise)
+        self.cruise = cruise
     def parse(self, cruise):
         ep = elog_path(cruise)
         self.df = parse_elog(ep)
@@ -107,7 +110,8 @@ class EventLog(object):
         self.add_events(merged)
     def to_dataframe(self):
         self.df.index = range(len(self.df))
-        return self.df
+        filename = '{}_elog'.format(self.cruise)
+        return data_table(self.df, filename=filename)
     # accessors
     def ctd_events(self):
         ctd = self.events_for_instrument(CTD_INSTRUMENT).copy()

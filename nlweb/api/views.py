@@ -6,16 +6,22 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views import View
 
+from neslter.parsing.files import FILENAME
 from neslter.parsing.ctd import Ctd
 from neslter.parsing.underway import Underway
 from neslter.parsing.elog import EventLog
 
-def dataframe_response(df, extension='json', filename=None):
+def datatable_response(dt, extension='json'):
+    try:
+        getattr(dt, 'metadata')
+    except KeyError:
+        raise Http404('cannot construct filename')
+    filename = '{}.{}'.format(dt.metadata[FILENAME], extension)
     if extension == 'json':
-        return HttpResponse(df.to_json(), content_type='application/json')
+        return HttpResponse(dt.to_json(), content_type='application/json')
     elif extension == 'csv':
         sio = StringIO()
-        df.to_csv(sio, index=None)
+        dt.to_csv(sio, index=None)
         csv = sio.getvalue()
         resp = HttpResponse(csv, content_type='text/csv')
         if filename is not None:
@@ -44,30 +50,26 @@ class CtdCastsView(CtdView):
 class CtdMetadataView(CtdView):
     def get(self, request, cruise, extension=None):
         if extension is None: extension = 'json'
-        filename = '{}_ctd_metadata.{}'.format(cruise, extension)
         md = self.ctd(cruise).metadata()
-        return dataframe_response(md, extension, filename=filename)
+        return datatable_response(md, extension)
 
 class CtdBottlesView(CtdView):
     def get(self, request, cruise, extension=None):
         if extension is None: extension = 'json'
-        filename = '{}_ctd_bottles.{}'.format(cruise, extension)
         btl = self.ctd(cruise).bottles()
-        return dataframe_response(btl, extension, filename=filename)
+        return datatable_response(btl, extension)
 
 class CtdBottleSummaryView(CtdView):
     def get(self, request, cruise, extension=None):
         if extension is None: extension = 'json'
-        filename = '{}_ctd_bottle_summary.{}'.format(cruise, extension)
         btl_summary = self.ctd(cruise).bottle_summary()
-        return dataframe_response(btl_summary, extension, filename=filename)
+        return datatable_response(btl_summary, extension)
 
 class CtdCastView(CtdView):
     def get(self, request, cruise, cast, extension=None):
         if extension is None: extension = 'json'
-        filename = '{}_ctd_cast{}.{}'.format(cruise, cast, extension)
         cast = self.ctd(cruise).cast(cast)
-        return dataframe_response(cast, extension, filename=filename)
+        return datatable_response(cast, extension)
 
 class UnderwayView(View):
     def get(self, request, cruise, extension=None):
@@ -78,15 +80,14 @@ class UnderwayView(View):
         except KeyError as exc:
             raise Http404(str(exc))
         df = uw.to_dataframe()
-        return dataframe_response(df, extension, filename=filename)
+        return datatable_response(df, extension)
 
 class EventLogView(View):
     def get(self, request, cruise, extension=None):
         if extension is None: extension = 'json'
-        filename = '{}_elog.{}'.format(cruise, extension)
         try:
             elog = EventLog(cruise)
         except KeyError as exc:
             raise Http404(str(exc))
         df = elog.to_dataframe()
-        return dataframe_response(df, extension, filename=filename)
+        return datatable_response(df, extension)

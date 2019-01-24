@@ -7,6 +7,8 @@ RAW = 'raw'
 PRODUCTS = 'products'
 ALL = 'all'
 
+FILENAME = 'filename'
+
 class Resolver(object):
     def __init__(self, data_root=None):
         if data_root is None:
