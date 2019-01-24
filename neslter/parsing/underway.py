@@ -13,7 +13,7 @@ from neslter.parsing.ctd.hdr import HdrFile
 from neslter.parsing.utils import clean_column_names, doy_to_datetime, date_time_to_datetime
 
 DATETIME_ISO8601 = 'DateTime_ISO8601'
-DATETIME = 'datetime'
+DATETIME = 'date' # this column name round-trips with df.to_json
 
 ENDEAVOR_GPS_MODEL = 'furuno'
 
