@@ -74,7 +74,6 @@ class CtdCastView(CtdView):
 class UnderwayView(View):
     def get(self, request, cruise, extension=None):
         if extension is None: extension = 'json'
-        filename = '{}_underway.{}'.format(cruise, extension)
         try:
             uw = Underway(cruise)
         except KeyError as exc:
