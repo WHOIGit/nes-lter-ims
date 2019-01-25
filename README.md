@@ -2,5 +2,6 @@
 
 NES-LTER information system components.
 
-Includes parsers for several low-volume data types
-including CTD data and chlorophyll data.
+* Parsing backend, parses raw formats and generates clean tables
+* EML generation utilities
+* REST API
