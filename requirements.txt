@@ -5,3 +5,4 @@ xlrd
 lxml
 jinja2
 django
+numexpr

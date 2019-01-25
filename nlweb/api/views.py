@@ -14,9 +14,9 @@ from neslter.parsing.elog import EventLog
 def datatable_response(dt, extension='json'):
     try:
         getattr(dt, 'metadata')
+        filename = '{}.{}'.format(dt.metadata[FILENAME], extension)
     except KeyError:
         raise Http404('cannot construct filename')
-    filename = '{}.{}'.format(dt.metadata[FILENAME], extension)
     if extension == 'json':
         return HttpResponse(dt.to_json(), content_type='application/json')
     elif extension == 'csv':
@@ -31,6 +31,7 @@ def datatable_response(dt, extension='json'):
         raise Http404('unsupported file type .{}'.format(extension))
 
 class CruisesView(View):
+    """list cruises. JSON only"""
     def get(self, request):
         cruises = Resolver().cruises()
         return JsonResponse({
