@@ -8,12 +8,13 @@ import pandas as pd
 import numpy as np
 
 from .files import Resolver, cruise_to_vessel, ENDEAVOR, ARMSTRONG
+from .utils import data_table
 
 from neslter.parsing.ctd.hdr import HdrFile
 from neslter.parsing.utils import clean_column_names, doy_to_datetime, date_time_to_datetime
 
 DATETIME_ISO8601 = 'DateTime_ISO8601'
-DATETIME = 'datetime'
+DATETIME = 'date' # this column name round-trips with df.to_json
 
 ENDEAVOR_GPS_MODEL = 'furuno'
 
@@ -74,15 +75,22 @@ class _ArmstrongParser(object):
         return 'dec_lat', 'dec_lon'
 
 class Underway(object):
-    def __init__(self, cruise, resolution=60):
-        csv_dir = Resolver().raw_directory('underway', cruise)
+    def __init__(self, cruise, resolution=60, raw_directory=None): 
+        if raw_directory is None:
+            csv_dir = Resolver().raw_directory('underway', cruise)
+        else:
+            csv_dir = raw_directory
+        self.cruise = cruise
         self.vessel = cruise_to_vessel(cruise)
         if self.vessel == ENDEAVOR:
             self.parser = _EndeavorParser(csv_dir, resolution)
         elif self.vessel == ARMSTRONG:
             self.parser = _ArmstrongParser(csv_dir)
     def to_dataframe(self):
-        return self.parser.to_dataframe()
+        df = self.parser.to_dataframe()
+        df.index = range(len(df))
+        filename = '{}_underway'.format(self.cruise)
+        return data_table(df, filename=filename)
     # accessors
     def time_to_location(self, time, gps_model=None):
         """returns lat, lon given time. picks the most recent location relative

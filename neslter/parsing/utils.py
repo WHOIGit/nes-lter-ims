@@ -128,3 +128,25 @@ def update_cell(df, ix, col, new_value):
     df = df.copy()
     df.at[ix, col] = new_value
     return df
+
+# subclass of DataFrame that carries a property called "metadata"
+# which is intended to be a dict of k/v pairs
+
+class DataTable(pd.DataFrame):
+    """DataFrame with a metadata property"""
+    # note that it is a coincidence that when subclassing a dataframe
+    # the extra properties are stored in a variable called _metadata.
+    # here I'm just adding one property which is called "metadata"
+    # but it could have been called anything
+    _metadata = ['metadata']
+    
+    @property
+    def _constructor(self):
+        return DataTable
+
+def data_table(df, **metadata):
+    """convenience function for transforming a vanilla DataFrame into
+    one that contains metadata k/v pairs"""
+    dt = DataTable(df)
+    dt.metadata = metadata
+    return dt
