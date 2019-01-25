@@ -17,17 +17,21 @@ class Ctd(object):
         return [int(i) for i in sorted(self.metadata()['cast'].unique())]
     def cast(self, cast_number):
         # return data for a specific cast
+        df = parse_cast(self.dir, cast_number)
         filename = '{}_ctd_cast_{}'.format(self.cruise, cast_number)
-        return data_table(parse_cast(self.dir, cast_number), filename=filename)
+        return data_table(df, filename=filename)
     def bottles(self, **kw):
         # return data for each bottle
+        df = compile_btl_files(self.dir, **kw)
         filename = '{}_ctd_bottles'.format(self.cruise)
-        return data_table(compile_btl_files(self.dir, **kw), filename=filename)
+        return data_table(df, filename=filename)
     def bottle_summary(self, **kw):
         # summarize bottle data
+        df = self.bottles(summary=True)
         filename = '{}_ctd_bottle_summary'.format(self.cruise)
-        return data_table(self.bottles(summary=True), filename=filename)
+        return data_table(df, filename=filename)
     def metadata(self):
         # return basic metadata from the header files
+        df = compile_hdr_files(self.dir)
         filename = '{}_ctd_metadata'.format(self.cruise)
-        return data_table(compile_hdr_files(self.dir), filename=filename)
+        return data_table(df, filename=filename)
