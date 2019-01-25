@@ -32,6 +32,13 @@ class Resolver(object):
         if makedirs:
             safe_makedirs(proc_dir)
         return proc_dir
+    def cruises(self):
+        c = []
+        raw = os.path.join(self.data_root, RAW)
+        for fn in os.listdir(raw):
+            if fn != ALL:
+                c.append(fn)
+        return c
 
 ENDEAVOR = 'Endeavor'
 ARMSTRONG = 'Armstrong'

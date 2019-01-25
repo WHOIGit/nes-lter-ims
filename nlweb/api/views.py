@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views import View
 
-from neslter.parsing.files import FILENAME
+from neslter.parsing.files import Resolver, FILENAME
 from neslter.parsing.ctd import Ctd
 from neslter.parsing.underway import Underway
 from neslter.parsing.elog import EventLog
@@ -29,6 +29,13 @@ def datatable_response(dt, extension='json'):
         return resp
     else:
         raise Http404('unsupported file type .{}'.format(extension))
+
+class CruisesView(View):
+    def get(self, request):
+        cruises = Resolver().cruises()
+        return JsonResponse({
+            'cruises': cruises
+            })
 
 class CtdView(View):
     """abstract view for handling CTD data"""
