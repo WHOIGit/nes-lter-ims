@@ -1,7 +1,7 @@
 import os
 from .utils import safe_makedirs
 
-DATA_ROOT = r'D:\nes-lter-ims-test-data\root'
+DATA_ROOT = '/data'
 
 RAW = 'raw'
 PRODUCTS = 'products'
