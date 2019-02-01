@@ -10,6 +10,7 @@ from neslter.parsing.files import Resolver, FILENAME
 from neslter.parsing.ctd import Ctd
 from neslter.parsing.underway import Underway
 from neslter.parsing.elog import EventLog
+from neslter.parsing.stations import Stations
 
 def datatable_response(dt, extension='json'):
     try:
@@ -21,7 +22,7 @@ def datatable_response(dt, extension='json'):
         return HttpResponse(dt.to_json(), content_type='application/json')
     elif extension == 'csv':
         sio = StringIO()
-        dt.to_csv(sio, index=None)
+        dt.to_csv(sio, index=None, encoding='utf-8')
         csv = sio.getvalue()
         resp = HttpResponse(csv, content_type='text/csv')
         if filename is not None:
@@ -86,8 +87,7 @@ class UnderwayView(View):
             uw = Underway(cruise)
         except KeyError as exc:
             raise Http404(str(exc))
-        df = uw.to_dataframe()
-        return datatable_response(df, extension)
+        return datatable_response(uw, extension)
 
 class EventLogView(View):
     def get(self, request, cruise, extension=None):
@@ -97,4 +97,14 @@ class EventLogView(View):
         except KeyError as exc:
             raise Http404(str(exc))
         df = elog.to_dataframe()
+        return datatable_response(df, extension)
+
+class StationsView(View):
+    def get(self, request, cruise, extension=None):
+        if extension is None: extension = 'json'
+        try:
+            stations = Stations(cruise)
+        except KeyError as exc:
+            raise Http404(str(exc))
+        df = stations.to_dataframe()
         return datatable_response(df, extension)

@@ -5,6 +5,8 @@ import pandas as pd
 from scipy.spatial.distance import euclidean
 
 from .files import Resolver
+from .utils import data_table
+
 from .ctd import Ctd
 
 class Stations(object):
@@ -38,6 +40,13 @@ class Stations(object):
         df['dec_lon'] = 0 - df['longitude'].map(parse_ll, na_action='ignore') # W
         df['depth_m'] = df['depth'].map(parse_depth)
         return df
+    def to_dataframe(self, exclude_waypoints=False):
+        df = self.station_metadata(exclude_waypoints=exclude_waypoints)
+        df['latitude'] = df.pop('dec_lat')
+        df['longitude'] = df.pop('dec_lon')
+        df['depth'] = df.pop('depth_m')
+        filename = '{}_stations'.format(self.cruise)
+        return data_table(df, filename=filename)
     def station_distances(self, lat, lon):
         station_md = self.station_metadata()
         distances = []
