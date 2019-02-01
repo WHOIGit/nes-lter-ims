@@ -22,6 +22,9 @@ COPY setup.py .
 # install neslter library in the conda environment
 RUN python setup.py develop
 
+# configure the neslter library
+COPY config.py.example config.py
+
 # now copy the django app
 COPY ./nlweb ./nlweb
 
