@@ -5,7 +5,7 @@ services:
     build: .
     container_name: neslter
     volumes:
-      - data:/data
+      - /data:/data
     networks:
       - nginx_network
 
@@ -24,8 +24,3 @@ services:
 networks:
   nginx_network:
     driver: bridge
-
-volumes:
-  data:
-    external:
-      name: nes-lter-ims-test-data
