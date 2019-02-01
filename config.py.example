@@ -1,0 +1,2 @@
+# note that this data root is used for Docker
+DATA_ROOT = '/data'

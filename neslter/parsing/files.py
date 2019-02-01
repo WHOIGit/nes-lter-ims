@@ -1,7 +1,7 @@
 import os
 from .utils import safe_makedirs
 
-DATA_ROOT = '/data'
+from config import DATA_ROOT
 
 RAW = 'raw'
 PRODUCTS = 'products'
