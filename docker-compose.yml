@@ -13,8 +13,8 @@ services:
     image: nginx:latest
     container_name: nginx
     ports:
-      - 8000:80
-      - 4430:443
+      - 80:80
+      - 443:443
     volumes:
       - ./certs:/etc/certs
       - ./nginx:/etc/nginx/conf.d
