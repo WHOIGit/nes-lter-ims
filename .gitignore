@@ -106,8 +106,10 @@ venv.bak/
 # emacs
 *~
 \#*\#
+
+# configuration files
 config.py
+nginx/nlweb.conf
 
 # certificates
-*.pem
-*.key
+certs
