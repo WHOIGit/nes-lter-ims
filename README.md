@@ -13,3 +13,15 @@ NES-LTER information system components.
 * Copy `nginx/nlweb.conf.example` to `nginx/nlweb.conf` and edit important fields like hostname and location of certs (the `certs` directory is mapped to `/etc/certs` in the nginx container
 * `docker-compose up`
 * If `config.py` or any of the code changes you will need to run `docker-compose build` again.
+* Put your data in `/data` on the host, otherwise modify the data volume configuration in `docker-compose.yml`, e.g.,
+```yaml
+...
+  nlweb:
+    build: .
+    container_name: neslter
+    volumes:
+      - /my/host/data/directory/data:/data
+    networks:
+      - nginx_network
+...
+```
