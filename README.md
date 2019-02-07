@@ -6,7 +6,7 @@ NES-LTER information system components.
 * EML generation utilities
 * REST API
 
-## Deploying REST API with `docker-compose`
+#### Deploying REST API with `docker-compose`
 
 * Copy `config.py.example` to `config.py` to configure neslter, then run `docker-compose build`
 * For SSL, put your certs in `certs`
