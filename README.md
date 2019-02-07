@@ -20,7 +20,7 @@ NES-LTER information system components.
     build: .
     container_name: neslter
     volumes:
-      - /my/host/data/directory/data:/data
+      - /my/host/data/directory:/data
     networks:
       - nginx_network
 ...
