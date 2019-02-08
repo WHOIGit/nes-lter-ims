@@ -12,7 +12,7 @@ FILENAME = 'filename'
 class Resolver(object):
     def __init__(self, data_root=None):
         if data_root is None:
-            data_root = DATA_ROOT # FIXME get from config file
+            data_root = DATA_ROOT
         self.data_root = data_root
     def raw_directory(self, data_type, cruise=ALL, check_exists=True):
         raw_dir = os.path.join(self.data_root, RAW, cruise, data_type)
