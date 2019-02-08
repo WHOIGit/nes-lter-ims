@@ -21,6 +21,7 @@ CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar22)(\d\d)\.', # Armstrong 22
     r'(ar\d\d[a-c]?)(\d\d\d)\.', # Armstrong 24, 28
     r'(EN\d+).*[Cc]ast(\d+b?)(?:_\w+)?\.', # Endeavor 608, 617
+    r'(EN\d+).*(\d{3})\.', # Endeavor 627
 ]
 
 def pathname2cruise_cast(pathname, skip_bad_filenames=True):
