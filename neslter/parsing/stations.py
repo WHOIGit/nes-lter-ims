@@ -9,13 +9,17 @@ from .utils import data_table
 
 from .ctd import Ctd
 
+METADATA = 'metadata'
+
 class Stations(object):
     def __init__(self, cruise):
-        filename = '{}_station_list.xlsx'.format(cruise.upper())
-        path = Resolver().raw_file('metadata', filename, cruise=cruise)
+        resolv = Resolver()
+        raw_filename = '{}_station_list.xlsx'.format(cruise.upper())
+        path = resolv.raw_file(METADATA, raw_filename, cruise=cruise)
         assert os.path.exists(path), 'cannot find station metadata at {}'.format(path)
         self.raw_path = path
         self.cruise = cruise
+        self.filename = '{}_stations'.format(self.cruise)
     def station_metadata(self, exclude_waypoints=True):
         columns = ['long_name', 'name', 'latitude', 'longitude', 'depth', 'comments']
         df = pd.read_excel(self.raw_path, index=None, header=None) # assume there's no header
@@ -45,8 +49,7 @@ class Stations(object):
         df['latitude'] = df.pop('dec_lat')
         df['longitude'] = df.pop('dec_lon')
         df['depth'] = df.pop('depth_m')
-        filename = '{}_stations'.format(self.cruise)
-        return data_table(df, filename=filename)
+        return data_table(df, filename=self.filename)
     def station_distances(self, lat, lon):
         station_md = self.station_metadata()
         distances = []
