@@ -1,5 +1,6 @@
 import re
 import os
+import json
 
 import numpy as np
 import pandas as pd
@@ -110,6 +111,19 @@ def format_dataframe(df, precision={}, nan_string='NaN'):
     # FIXME deal with string missing values
     return df
 
+def change_extension(path, extension):
+    p, e = os.path.splitext(path)
+    return '{}.{}'.format(p, extension)
+
+def read_json_file(json_file, check_exists=True, encoding='utf-8'):
+    json_file = change_extension(json_file, 'json')
+    if os.path.exists(json_file):
+        with open(json_file, 'r', encoding=encoding) as fin:
+            return json.load(fin) 
+    if check_exists:
+        raise KeyError('cannot find JSON file {}'.format(json_file))
+    return {}
+
 # os utilities
 
 def safe_makedirs(path):
@@ -148,5 +162,28 @@ def data_table(df, **metadata):
     """convenience function for transforming a vanilla DataFrame into
     one that contains metadata k/v pairs"""
     dt = DataTable(df)
-    dt.metadata = metadata
+    try:
+        # is this already a datatable with metadata?
+        existing_md = dt.metadata
+        dt.metadata = existing_md.update(metadata)
+    except AttributeError:
+        dt.metadata = metadata
     return dt
+
+def metadata_file(product_path):
+    product_name = os.path.basename(product_path)
+    p, _ = os.path.splitext(product_name)
+    return '{}_metadata.json'.format(p)
+
+def read_metadata_file(product_path, check_exists=True):
+    metadata_path = metadata_file(product_path)
+    return read_json_file(p_path, check_exists=check_exists)
+
+def write_dt(product_path):
+    """writes a datatable as csv with sidecar metadata file"""
+    product_path = change_extension(product_path, 'csv')
+    dt.to_csv(product_path, index=None, encoding='utf-8')
+    md_file = metadata_file(product_path)
+    md = dt.metadata
+    with open(md_file, 'w', encoding='utf-8') as fout:
+        json.dump(md, fout)
