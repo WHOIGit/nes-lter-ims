@@ -171,15 +171,16 @@ def data_table(df, **metadata):
     return dt
 
 def metadata_file(product_path):
+    product_dir = os.path.dirname(product_path)
     product_name = os.path.basename(product_path)
     p, _ = os.path.splitext(product_name)
-    return '{}_metadata.json'.format(p)
+    return os.path.join(product_dir, '{}_metadata.json'.format(p))
 
 def read_metadata_file(product_path, check_exists=True):
     metadata_path = metadata_file(product_path)
     return read_json_file(p_path, check_exists=check_exists)
 
-def write_dt(product_path):
+def write_dt(dt, product_path):
     """writes a datatable as csv with sidecar metadata file"""
     product_path = change_extension(product_path, 'csv')
     dt.to_csv(product_path, index=None, encoding='utf-8')

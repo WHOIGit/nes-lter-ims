@@ -6,7 +6,7 @@ from .hdr import compile_hdr_files
 from .asc import parse_cast
 
 class Ctd(object):
-    def __init__(self, cruise):
+    def __init__(self, cruise, check_exists=True):
         self.cruise = cruise
         r, p = Resolver().directories('ctd', cruise)
         self.raw_dir = r
