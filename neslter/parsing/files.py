@@ -27,11 +27,17 @@ class Resolver(object):
         if check_exists and not os.path.exists(raw_path):
             raise KeyError('file {} not found'.format(raw_path))
         return raw_path
-    def processed_directory(self, data_type, cruise=ALL, makedirs=False):
-        proc_dir = os.path.join(self.data_root, RAW, cruise, data_type)
+    def product_directory(self, data_type, cruise=ALL, makedirs=False):
+        proc_dir = os.path.join(self.data_root, PRODUCTS, cruise, data_type)
         if makedirs:
             safe_makedirs(proc_dir)
         return proc_dir
+    def product_file(self, data_type, cruise, name=None, extension='json'):
+        proc_dir = self.product_directory(data_type, cruise)
+        name_ext = '{}.{}'.format(extension)
+        return os.path.join(proc_dir, name)
+    def directories(self, data_type, cruise):
+        return self.raw_directory(data_type, cruise), self.product_directory(data_type, cruise)
     def cruises(self):
         c = []
         raw = os.path.join(self.data_root, RAW)
