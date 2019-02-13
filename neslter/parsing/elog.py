@@ -41,7 +41,7 @@ COLUMNS = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
 
 def elog_path(cruise):
     elog_dir = Resolver().raw_directory('elog', cruise)
-    candidates = glob(os.path.join(elog_dir, 'R2R_ELOG_*.csv'))
+    candidates = glob(os.path.join(elog_dir, 'R2R_ELOG_{}_FINAL*.csv'.format(cruise)))
     assert len(candidates) == 1
     return candidates[0]
 
@@ -62,6 +62,17 @@ def toi_path(cruise):
         return None
     return path
 
+def corrections_path(cruise):
+    try:
+        elog_dir = Resolver().raw_directory('elog', cruise)
+    except KeyError:
+        return None
+    filename = 'R2R_ELOG_{}_corrections.xlsx'.format(cruise)
+    path = os.path.join(elog_dir, filename)
+    if not os.path.exists(path):
+        return None
+    return path
+
 class EventLog(object):
     def __init__(self, cruise):
         self.parse(cruise)
@@ -76,6 +87,9 @@ class EventLog(object):
             self.add_events(clean_toi_discrete(tp))
         if hdr_dir is not None:
             self.merge_ctd_comments(hdr_dir)
+        corr_path = corrections_path(cruise)
+        if corr_path is not None:
+            self.apply_corrections(corr_path)
         self.fix_incubation_cast_numbers()
     def add_events(self, events):
         self.df = pd.concat([self.df, events]).sort_values(DATETIME)
@@ -108,6 +122,16 @@ class EventLog(object):
         merged['Comment'] = merged.pop('Comment_y')
         self.remove_instrument(CTD_INSTRUMENT)
         self.add_events(merged)
+    def apply_corrections(self, corr_path):
+        corr = pd.read_excel(corr_path)
+        corr.Date = pd.to_datetime(corr.Date, utc=True)
+        corr.pop('Instrument')
+        corr.pop('Action')
+        corr.index = corr.pop('Message ID')
+        merged = corr.merge(self.df, left_index=True, right_index=True, how='right')
+        merged['dateTime8601'] = pd.to_datetime(merged['dateTime8601'].combine_first(merged['Date']), utc=True)
+        merged.pop('Date')
+        self.df = merged
     def to_dataframe(self):
         self.df.index = range(len(self.df))
         filename = '{}_elog'.format(self.cruise)
