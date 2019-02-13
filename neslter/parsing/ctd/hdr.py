@@ -62,7 +62,7 @@ def compile_hdr_files(hdr_dir):
     df = pd.DataFrame({
         'cruise': cruises,
         'cast': casts,
-        'date': times,
+        'date': pd.to_datetime(times, utc=True),
         'latitude': lats,
         'longitude': lons
     }).dropna()
