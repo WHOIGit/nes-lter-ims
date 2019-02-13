@@ -84,7 +84,7 @@ class UnderwayView(View):
     def get(self, request, cruise, extension=None):
         if extension is None: extension = 'json'
         try:
-            uw = Underway(cruise)
+            uw = Underway(cruise).to_dataframe()
         except KeyError as exc:
             raise Http404(str(exc))
         return datatable_response(uw, extension)
