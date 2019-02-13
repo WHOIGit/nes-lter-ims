@@ -34,8 +34,8 @@ class Resolver(object):
         return proc_dir
     def product_file(self, data_type, cruise, name=None, extension='json'):
         proc_dir = self.product_directory(data_type, cruise)
-        name_ext = '{}.{}'.format(extension)
-        return os.path.join(proc_dir, name)
+        name_ext = '{}.{}'.format(name, extension)
+        return os.path.join(proc_dir, name_ext)
     def directories(self, data_type, cruise):
         return self.raw_directory(data_type, cruise), self.product_directory(data_type, cruise)
     def cruises(self):

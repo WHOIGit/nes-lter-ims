@@ -18,6 +18,8 @@ DATETIME = 'date' # this column name round-trips with df.to_json
 
 ENDEAVOR_GPS_MODEL = 'furuno'
 
+UNDERWAY = 'underway'
+
 class _EndeavorParser(object):
     def __init__(self, csv_dir, resolution=60):
         self.df = self.parse(csv_dir, resolution)
@@ -76,8 +78,9 @@ class _ArmstrongParser(object):
 
 class Underway(object):
     def __init__(self, cruise, resolution=60, raw_directory=None): 
+        resolv = Resolver()
         if raw_directory is None:
-            csv_dir = Resolver().raw_directory('underway', cruise)
+            csv_dir = resolv.raw_directory('underway', cruise)
         else:
             csv_dir = raw_directory
         self.cruise = cruise
@@ -86,18 +89,25 @@ class Underway(object):
             self.parser = _EndeavorParser(csv_dir, resolution)
         elif self.vessel == ARMSTRONG:
             self.parser = _ArmstrongParser(csv_dir)
+        self.filename = '{}_underway'.format(self.cruise)
+        self.product_file = resolv.product_file(UNDERWAY, cruise, self.filename)
+        self.dt = None # cached datatable
+    def from_dataframe(self, df):
+        self.dt = data_table(df, filename=self.filename)
     def to_dataframe(self):
+        if self.dt is not None:
+            return self.dt
         df = self.parser.to_dataframe()
         df.index = range(len(df))
-        filename = '{}_underway'.format(self.cruise)
-        return data_table(df, filename=filename)
+        self.dt = data_table(df, filename=self.filename)
+        return self.dt
     # accessors
     def time_to_location(self, time, gps_model=None):
         """returns lat, lon given time. picks the most recent location relative
         to the given timestamp"""
         lat_col, lon_col = self.parser.lat_lon_columns(gps_model=gps_model)
         index = max(0, self.parser.df.index.searchsorted(pd.to_datetime(time)) - 1)
-        row = self.parser.df.iloc[index]
+        row = self.dt.iloc[index]
         return row[lat_col], row[lon_col]
     def add_locations(self, df, time_column, lat_col, lon_col, gps_model=None):
         """given a dataframe with a datetime column and lat lon cols,
