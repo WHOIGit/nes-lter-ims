@@ -107,8 +107,14 @@ class Underway(object):
         to the given timestamp"""
         lat_col, lon_col = self.parser.lat_lon_columns(gps_model=gps_model)
         index = max(0, self.parser.df.index.searchsorted(pd.to_datetime(time)) - 1)
-        row = self.dt.iloc[index]
+        row = self.parser.df.iloc[index]
         return row[lat_col], row[lon_col]
+    def time_to_lat(self, time, gps_model=None):
+        # convenience
+        return self.time_to_location(time, gps_model)[0]
+    def time_to_lon(self, time, gps_model=None):
+        # convenience
+        return self.time_to_location(time, gps_model)[1]
     def add_locations(self, df, time_column, lat_col, lon_col, gps_model=None):
         """given a dataframe with a datetime column and lat lon cols,
         fill in any NaNs in the lat/lon columns with the results of
