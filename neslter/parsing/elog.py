@@ -9,6 +9,7 @@ from .utils import data_table
 
 from neslter.parsing.files import Resolver
 from neslter.parsing.ctd.hdr import compile_hdr_files
+from neslter.parsing.underway import Underway
 
 # keys
 
@@ -20,6 +21,7 @@ CAST = 'Cast'
 DATETIME = 'dateTime8601'
 LAT='Latitude'
 LON='Longitude'
+MESSAGE_ID = 'Message ID'
 
 RECOVER_ACTION = 'recover'
 
@@ -37,7 +39,8 @@ USS_IMPELLER = 'Underway Science seawater impeller'
 USS_DIAPHRAGM = 'Underway Science seawater diaphragm pump'
 CTD_INSTRUMENT = 'CTD911'
 
-COLUMNS = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
+ELOG_COLUMNS = [MESSAGE_ID, DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
+TOI_COLUMNS = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
 
 def elog_path(cruise):
     elog_dir = Resolver().raw_directory('elog', cruise)
@@ -75,11 +78,15 @@ def corrections_path(cruise):
 
 class EventLog(object):
     def __init__(self, cruise):
-        self.parse(cruise)
         self.cruise = cruise
+        self.parse(cruise)
     def parse(self, cruise):
         ep = elog_path(cruise)
         self.df = parse_elog(ep)
+        corr_path = corrections_path(cruise)
+        if corr_path is not None:
+            self.apply_corrections(corr_path)
+        self.add_underway_locations()
         hdr_dir = hdr_path(cruise)
         tp = toi_path(cruise)
         if tp is not None:
@@ -87,12 +94,9 @@ class EventLog(object):
             self.add_events(clean_toi_discrete(tp))
         if hdr_dir is not None:
             self.merge_ctd_comments(hdr_dir)
-        corr_path = corrections_path(cruise)
-        if corr_path is not None:
-            self.apply_corrections(corr_path)
         self.fix_incubation_cast_numbers()
     def add_events(self, events):
-        self.df = pd.concat([self.df, events]).sort_values(DATETIME)
+        self.df = pd.concat([self.df, events], sort=True).sort_values(DATETIME)
     def remove_recover_events(self, instrument):
         self.remove_action(RECOVER_ACTION, instrument)
     def remove_instrument(self, instrument):
@@ -127,13 +131,26 @@ class EventLog(object):
         corr.Date = pd.to_datetime(corr.Date, utc=True)
         corr.pop('Instrument')
         corr.pop('Action')
-        corr.index = corr.pop('Message ID')
-        merged = corr.merge(self.df, left_index=True, right_index=True, how='right')
-        merged['dateTime8601'] = pd.to_datetime(merged['dateTime8601'].combine_first(merged['Date']), utc=True)
+        merged = self.df.merge(corr, on=MESSAGE_ID, how='left')
+        merged['dateTime8601'] = pd.to_datetime(merged['Date'].combine_first(merged['dateTime8601']), utc=True)
         merged.pop('Date')
         self.df = merged
+    def add_underway_locations(self):
+        try:
+            uw = Underway(self.cruise)
+        except:
+            raise
+        uw_lat = self.df[DATETIME].map(lambda t: uw.time_to_lat(t))
+        uw_lon = self.df[DATETIME].map(lambda t: uw.time_to_lon(t))
+        self.df[LAT] = self.df[LAT].combine_first(uw_lat)
+        self.df[LON] = self.df[LON].combine_first(uw_lon)
     def to_dataframe(self):
-        self.df.index = range(len(self.df))
+        #self.df.index = range(len(self.df))
+        self.df = self.df.sort_values(DATETIME)
+        self.df = self.df[ELOG_COLUMNS]
+        # deal with nans in message ID column
+        self.df[MESSAGE_ID] = self.df[MESSAGE_ID].fillna(-9999)
+        self.df[MESSAGE_ID] = self.df[MESSAGE_ID].astype(int).astype(str).replace('-9999','')
         filename = '{}_elog'.format(self.cruise)
         return data_table(self.df, filename=filename)
     # accessors
@@ -156,7 +173,7 @@ class EventLog(object):
         if cast in self.stations().index:
             return self.stations().loc[cast]
         else:
-            return np.nan()
+            return np.nan
     # parse hdr files to generate CTD deploy events
     def parse_ctd_hdrs(self, hdr_dir):
         assert os.path.exists(hdr_dir), 'CTD hdr directory not found at {}'.format(hdr_dir)
@@ -166,7 +183,7 @@ class EventLog(object):
         hdr.insert(1, 'Action', 'deploy')
         hdr.insert(1, 'Instrument', 'CTD911')
         hdr.insert(7, 'Comment', np.nan)
-        hdr.columns = COLUMNS
+        hdr.columns = TOI_COLUMNS
         return hdr
 
 # parse elog and clean columns / column names
@@ -175,8 +192,9 @@ def parse_elog(elog_path):
     assert os.path.exists(elog_path), 'elog file not found at {}'.format(elog_path)
     df = pd.read_csv(elog_path) # defaults work
     df[DATETIME] = pd.to_datetime(df[DATETIME], utc=True) # parse date column
-    df = df[COLUMNS] # retain only the columns we want to use
+    df = df[ELOG_COLUMNS] # retain only the columns we want to use
     df = df.sort_values(DATETIME) # sort by time
+    df.index = df[MESSAGE_ID].values
     return df
 
 def cast_to_int(cast):
@@ -229,5 +247,5 @@ def clean_toi_discrete(toi_path):
     log[STATION] = ''
     log[CAST] = ''
     # retain only the columns we want to keep
-    log = log[COLUMNS]
+    log = log[TOI_COLUMNS]
     return log
