@@ -89,13 +89,16 @@ class EventLog(object):
         addns_path = additions_path(cruise)
         if addns_path is not None:
             self.apply_additions(addns_path)
+        # FIXME this is cruise-specific
+        if cruise == 'en627':
+            self.fix_en627_cast_numbers()
         self.add_underway_locations()
         hdr_dir = hdr_path(cruise)
         tp = toi_path(cruise)
         if tp is not None:
             self.remove_action(TOI_DISCRETE)
             self.add_events(clean_toi_discrete(tp))
-        if hdr_dir is not None:
+        if hdr_dir is not None and cruise != 'en627': # FIXME remove cruise-specific clause
             self.merge_ctd_comments(hdr_dir)
         self.fix_incubation_cast_numbers()
     def add_events(self, events):
@@ -147,6 +150,8 @@ class EventLog(object):
         addns.insert(4, 'Latitude', np.nan)
         addns.insert(4, 'Cast', np.nan)
         self.df = pd.concat([self.df, addns])
+    def fix_en627_cast_numbers(self):
+        pass
     def add_underway_locations(self):
         try:
             uw = Underway(self.cruise)
