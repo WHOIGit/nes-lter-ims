@@ -2,6 +2,7 @@ import re
 import os
 
 import pandas as pd
+import numpy as np
 from scipy.spatial.distance import euclidean
 
 from .files import Resolver
@@ -22,7 +23,7 @@ class Stations(object):
         self.filename = '{}_stations'.format(self.cruise)
     def station_metadata(self, exclude_waypoints=True):
         columns = ['long_name', 'name', 'latitude', 'longitude', 'depth', 'comments']
-        df = pd.read_excel(self.raw_path, index=None, header=None) # assume there's no header
+        df = pd.read_excel(self.raw_path, index=None)
         df.columns = columns
         df['comments'] = df['comments'].fillna('')
         # some 'stations' are just waypoints where there won't be a cast
@@ -37,8 +38,10 @@ class Stations(object):
             frac = float(min) / 60
             return round(deg + frac, 4)
         def parse_depth(d):
-            """removes 'm' from depth and parses as int"""
-            return int(re.sub(r'\s*m','',d))
+            """removes 'm' from depth and parses as float"""
+            if pd.isnull(d):
+                return np.nan
+            return float(re.sub(r'\s*m','',d))
         # compute derived fields
         df['dec_lat'] = df['latitude'].map(parse_ll, na_action='ignore') # N
         df['dec_lon'] = 0 - df['longitude'].map(parse_ll, na_action='ignore') # W
