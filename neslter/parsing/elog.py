@@ -40,12 +40,12 @@ USS_DIAPHRAGM = 'Underway Science seawater diaphragm pump'
 CTD_INSTRUMENT = 'CTD911'
 
 ELOG_COLUMNS = [MESSAGE_ID, DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
-TOI_COLUMNS = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
+COLUMNS_WO_MESSAGE_ID = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, COMMENT]
 
 def elog_path(cruise):
     elog_dir = Resolver().raw_directory('elog', cruise)
-    candidates = glob(os.path.join(elog_dir, 'R2R_ELOG_{}_FINAL*.csv'.format(cruise)))
-    assert len(candidates) == 1
+    candidates = glob(os.path.join(elog_dir, 'R2R_ELOG_*_FINAL_EVENTLOG*.csv'))
+    assert len(candidates) == 1, 'cannot find event log at {}'.format(elog_dir)
     return candidates[0]
 
 def hdr_path(cruise):
@@ -127,13 +127,17 @@ class EventLog(object):
         self.remove_instrument(CTD_INSTRUMENT)
         self.add_events(merged)
     def apply_corrections(self, corr_path):
+        # this will work when "corrections" has dateTime8601 column
         corr = pd.read_excel(corr_path)
-        corr.Date = pd.to_datetime(corr.Date, utc=True)
+        if not DATETIME in corr.columns:
+            return # if it doesn't, don't fail
+        corr[DATETIME] = pd.to_datetime(corr[DATETIME], utc=True)
         corr.pop('Instrument')
         corr.pop('Action')
         merged = self.df.merge(corr, on=MESSAGE_ID, how='left')
-        merged['dateTime8601'] = pd.to_datetime(merged['Date'].combine_first(merged['dateTime8601']), utc=True)
-        merged.pop('Date')
+        DATETIME_X = '{}_x'.format(DATETIME)
+        DATETIME_Y = '{}_y'.format(DATETIME)
+        merged[DATETIME] = pd.to_datetime(merged[DATETIME_Y].combine_first(merged[DATETIME_X]), utc=True)
         self.df = merged
     def add_underway_locations(self):
         try:
@@ -145,12 +149,9 @@ class EventLog(object):
         self.df[LAT] = self.df[LAT].combine_first(uw_lat)
         self.df[LON] = self.df[LON].combine_first(uw_lon)
     def to_dataframe(self):
-        #self.df.index = range(len(self.df))
+        self.df.index = range(len(self.df))
         self.df = self.df.sort_values(DATETIME)
-        self.df = self.df[ELOG_COLUMNS]
-        # deal with nans in message ID column
-        self.df[MESSAGE_ID] = self.df[MESSAGE_ID].fillna(-9999)
-        self.df[MESSAGE_ID] = self.df[MESSAGE_ID].astype(int).astype(str).replace('-9999','')
+        self.df = self.df[COLUMNS_WO_MESSAGE_ID]
         filename = '{}_elog'.format(self.cruise)
         return data_table(self.df, filename=filename)
     # accessors
@@ -183,7 +184,7 @@ class EventLog(object):
         hdr.insert(1, 'Action', 'deploy')
         hdr.insert(1, 'Instrument', 'CTD911')
         hdr.insert(7, 'Comment', np.nan)
-        hdr.columns = TOI_COLUMNS
+        hdr.columns = COLUMNS_WO_MESSAGE_ID
         return hdr
 
 # parse elog and clean columns / column names
@@ -247,5 +248,5 @@ def clean_toi_discrete(toi_path):
     log[STATION] = ''
     log[CAST] = ''
     # retain only the columns we want to keep
-    log = log[TOI_COLUMNS]
+    log = log[COLUMNS_WO_MESSAGE_ID]
     return log
