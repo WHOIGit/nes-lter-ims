@@ -54,27 +54,27 @@ def hdr_path(cruise):
     except KeyError:
         return None
 
-def toi_path(cruise):
+def sidecar_file_path(cruise, filename):
     try:
         elog_dir = Resolver().raw_directory('elog', cruise)
     except KeyError:
         return None
-    filename = '{}_TOI_underwaysampletimes.txt'.format(cruise.capitalize())
     path = os.path.join(elog_dir, filename)
     if not os.path.exists(path):
         return None
     return path
 
+def toi_path(cruise):
+    filename = '{}_TOI_underwaysampletimes.txt'.format(cruise.capitalize())
+    return sidecar_file_path(cruise, filename)
+
 def corrections_path(cruise):
-    try:
-        elog_dir = Resolver().raw_directory('elog', cruise)
-    except KeyError:
-        return None
     filename = 'R2R_ELOG_{}_corrections.xlsx'.format(cruise)
-    path = os.path.join(elog_dir, filename)
-    if not os.path.exists(path):
-        return None
-    return path
+    return sidecar_file_path(cruise, filename)
+
+def additions_path(cruise):
+    filename = 'R2R_ELOG_{}_additions.xlsx'.format(cruise)
+    return sidecar_file_path(cruise, filename)
 
 class EventLog(object):
     def __init__(self, cruise):
@@ -86,6 +86,9 @@ class EventLog(object):
         corr_path = corrections_path(cruise)
         if corr_path is not None:
             self.apply_corrections(corr_path)
+        addns_path = additions_path(cruise)
+        if addns_path is not None:
+            self.apply_additions(addns_path)
         self.add_underway_locations()
         hdr_dir = hdr_path(cruise)
         tp = toi_path(cruise)
@@ -127,10 +130,7 @@ class EventLog(object):
         self.remove_instrument(CTD_INSTRUMENT)
         self.add_events(merged)
     def apply_corrections(self, corr_path):
-        # this will work when "corrections" has dateTime8601 column
         corr = pd.read_excel(corr_path)
-        if not DATETIME in corr.columns:
-            return # if it doesn't, don't fail
         corr[DATETIME] = pd.to_datetime(corr[DATETIME], utc=True)
         corr.pop('Instrument')
         corr.pop('Action')
@@ -139,6 +139,14 @@ class EventLog(object):
         DATETIME_Y = '{}_y'.format(DATETIME)
         merged[DATETIME] = pd.to_datetime(merged[DATETIME_Y].combine_first(merged[DATETIME_X]), utc=True)
         self.df = merged
+    def apply_additions(self, addns_path):
+        addns = pd.read_excel(addns_path)
+        addns[DATETIME] = pd.to_datetime(addns[DATETIME], utc=True)
+        # add placeholder columns
+        addns.insert(4, 'Longitude', np.nan)
+        addns.insert(4, 'Latitude', np.nan)
+        addns.insert(4, 'Cast', np.nan)
+        self.df = pd.concat([self.df, addns])
     def add_underway_locations(self):
         try:
             uw = Underway(self.cruise)

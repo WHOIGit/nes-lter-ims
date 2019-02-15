@@ -17,7 +17,8 @@ class Stations(object):
         resolv = Resolver()
         raw_filename = '{}_station_list.xlsx'.format(cruise.upper())
         path = resolv.raw_file(METADATA, raw_filename, cruise=cruise)
-        assert os.path.exists(path), 'cannot find station metadata at {}'.format(path)
+        if not os.path.exists(path):
+            raise KeyError('cannot find station metadata at {}'.format(path))
         self.raw_path = path
         self.cruise = cruise
         self.filename = '{}_stations'.format(self.cruise)

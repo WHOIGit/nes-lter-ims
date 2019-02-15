@@ -34,6 +34,9 @@ def pathname2cruise_cast(pathname, skip_bad_filenames=True):
             # FIXME hardcoded to deal with problem with EN608 cast "13"
             if cruise.lower() == 'en608' and cast == '13b':
                 cast = 14
+            # FIXME hardcoded to deal with problem with EN627 cast "1"
+            if cruise.lower() == 'en627' and cast == '1':
+                cast = 2
             try:
                 cast = int(cast)
             except ValueError:

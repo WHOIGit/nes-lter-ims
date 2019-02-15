@@ -50,4 +50,4 @@ def parse_cast(asc_dir, cast=1, delimiter=';'):
             df.insert(0, 'cast', cast)
             df.insert(0, 'cruise', cruise)
             return df
-    raise KeyError('cast not found: {} {}'.format(cruise, cast))
+    raise KeyError('cast not found: {}'.format(cast))
