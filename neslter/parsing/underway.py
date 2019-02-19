@@ -27,7 +27,7 @@ class _EndeavorParser(object):
         """compile daily underway files"""
         assert resolution in [1, 60] # not aware of any other resolutions
         dfs = []
-        for fn in os.listdir(csv_dir):
+        for fn in sorted(os.listdir(csv_dir)):
             # files have names like Data60Sec_Daily_20180204-000000.csv
             if not re.match(r'Data{}Sec_Daily_\d+-\d+\.csv'.format(resolution), fn):
                 continue
