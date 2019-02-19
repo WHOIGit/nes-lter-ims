@@ -42,9 +42,11 @@ def format_asc(df):
     return df.copy()
 
 def parse_cast(asc_dir, cast=1, delimiter=';'):
-    for p in glob(os.path.join(asc_dir, '*.asc')):
+    for p in sorted(glob(os.path.join(asc_dir, '*.asc'))):
         b = os.path.basename(p)
         cruise, fcast = pathname2cruise_cast(b)
+        if cruise is None or fcast is None: # bad filename, skip
+            continue
         if cast == int(fcast):
             df = parse_asc(p, delimiter)
             df.insert(0, 'cast', cast)
