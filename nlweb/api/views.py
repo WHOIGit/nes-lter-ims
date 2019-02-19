@@ -58,14 +58,20 @@ class CtdView(View):
     def resolver(self, cruise):
         return CtdResolver(cruise)
 
+def list_casts(cruise):
+    resolver = CtdResolver(cruise)
+    parser = Ctd(cruise.lower())
+    filename, path = resolver.metadata()
+    if path is not None:
+        md = read_product_csv(path)
+    else:
+        md = parser(cruise).metadata()
+    casts = [int(i) for i in sorted(md['cast'].unique())]
+    return casts
+
 class CtdCastsView(CtdView):
     def get(self, request, cruise): # JSON only
-        filename, path = self.resolver(cruise).metadata()
-        if path is not None:
-            md = read_product_csv(path)
-        else:
-            md = self.parser(cruise).metadata()
-        casts = [int(i) for i in sorted(md['cast'].unique())]
+        casts = list_casts(cruise)
         return JsonResponse({'casts': casts})
 
 class CtdMetadataView(CtdView):
@@ -117,12 +123,18 @@ class CtdBottleSummaryView(CtdView):
 
 class CtdCastView(CtdView):
     def get(self, request, cruise, cast, extension=None):
+        casts = list_casts(cruise)
+        if cast not in casts:
+            raise Http404('cast {} not found'.format(cast))
         if extension is None: extension = 'json'
         filename, path = self.resolver(cruise).cast(cast)
         if path is not None:
             df = read_product_csv(path)
         else:
-            df = self.parser(cruise).cast(cast)
+            try:
+                df = self.parser(cruise).cast(cast)
+            except KeyError:
+                raise Http404('cast {} not found'.format(cast))
         return dataframe_response(df, filename, extension)
 
 class UnderwayView(View):
