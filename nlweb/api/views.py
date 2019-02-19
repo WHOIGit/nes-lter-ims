@@ -12,7 +12,7 @@ from neslter.parsing.files import Resolver, FILENAME
 from neslter.parsing.ctd import Ctd
 from neslter.parsing.underway import Underway
 from neslter.parsing.elog import EventLog
-from neslter.parsing.stations import Stations
+from neslter.parsing.stations import Stations, StationLocator
 
 from neslter.workflow.ctd import CtdResolver
 from neslter.workflow.underway import UnderwayResolver
@@ -33,25 +33,6 @@ def dataframe_response(df, filename, extension='json'):
         return resp
     else:
         raise Http404('unsupported file type .{}'.format(extension))   
-
-def datatable_response(dt, extension='json'):
-    try:
-        getattr(dt, 'metadata')
-        filename = '{}.{}'.format(dt.metadata[FILENAME], extension)
-    except KeyError:
-        raise Http404('cannot construct filename')
-    if extension == 'json':
-        return HttpResponse(dt.to_json(), content_type='application/json')
-    elif extension == 'csv':
-        sio = StringIO()
-        dt.to_csv(sio, index=None, encoding='utf-8')
-        csv = sio.getvalue()
-        resp = HttpResponse(csv, content_type='text/csv')
-        if filename is not None:
-            resp['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-        return resp
-    else:
-        raise Http404('unsupported file type .{}'.format(extension))
 
 def read_product_csv(path):
     """file must exist and be a CSV file"""
@@ -78,21 +59,38 @@ class CtdView(View):
         return CtdResolver(cruise)
 
 class CtdCastsView(CtdView):
-    # FIXME need to read from metadata even if that comes from a file
     def get(self, request, cruise): # JSON only
-        casts = self.parser(cruise).casts()
-        return JsonResponse({
-            'casts': casts
-        })
-
-class CtdMetadataView(CtdView):
-    def get(self, request, cruise, extension=None):
-        if extension is None: extension = 'json'
         filename, path = self.resolver(cruise).metadata()
         if path is not None:
             md = read_product_csv(path)
         else:
             md = self.parser(cruise).metadata()
+        casts = [int(i) for i in sorted(md['cast'].unique())]
+        return JsonResponse({'casts': casts})
+
+class CtdMetadataView(CtdView):
+    def get(self, request, cruise, extension=None):
+        if extension is None: extension = 'json'
+        # read ctd metadata
+        filename, path = self.resolver(cruise).metadata()
+        if path is not None:
+            md = read_product_csv(path)
+        else:
+            md = self.parser(cruise).metadata()
+        # now merge with nearest station
+        smd = None
+        _, path = StationsResolver(cruise).find_file()
+        if path is not None:
+            smd = read_product_csv(path)
+        else:
+            try:
+                stations = Stations(cruise)
+                smd = stations.to_dataframe()
+            except KeyError:
+                pass
+        if smd is not None:
+            station_locator = StationLocator(smd)
+            md = station_locator.cast_to_station(md)
         return dataframe_response(md, filename, extension)
 
 class CtdBottlesView(CtdView):

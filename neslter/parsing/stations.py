@@ -21,7 +21,6 @@ class Stations(object):
             raise KeyError('cannot find station metadata at {}'.format(path))
         self.raw_path = path
         self.cruise = cruise
-        self.filename = '{}_stations'.format(self.cruise)
     def station_metadata(self, exclude_waypoints=True):
         columns = ['long_name', 'name', 'latitude', 'longitude', 'depth', 'comments']
         df = pd.read_excel(self.raw_path, index=None)
@@ -48,34 +47,42 @@ class Stations(object):
         df['dec_lon'] = 0 - df['longitude'].map(parse_ll, na_action='ignore') # W
         df['depth_m'] = df['depth'].map(parse_depth)
         return df
-    def to_dataframe(self, exclude_waypoints=False):
+    def to_dataframe(self, exclude_waypoints=True):
         df = self.station_metadata(exclude_waypoints=exclude_waypoints)
         df['latitude'] = df.pop('dec_lat')
         df['longitude'] = df.pop('dec_lon')
         df['depth'] = df.pop('depth_m')
-        return data_table(df, filename=self.filename)
+        return df
+    def station_locator(self):
+        return StationLocator(self.station_metadata())
     def station_distances(self, lat, lon):
-        station_md = self.station_metadata()
+        return self.station_locator().station_distances(lat, lon)
+    def nearest_station(self, df, lat_col='latitude', lon_col='longitude'):
+        return self.station_locator().nearest_station(df, lat_col, lon_col)
+    def cast_to_station(self, ctd_metadata):
+        return self.station_locator().cast_to_station(ctd_metadata)
+
+class StationLocator(object):
+    def __init__(self, station_metadata):
+        self.station_metadata = station_metadata
+    def station_distances(self, lat, lon):
         distances = []
         index = []
-        for station in station_md.itertuples():
+        for station in self.station_metadata.itertuples():
             index.append(station.Index)
-            distance = euclidean([lat,lon], [station.dec_lat, station.dec_lon])
+            distance = euclidean([lat,lon], [station.latitude, station.longitude])
             distances.append(distance)
         distances = pd.Series(distances, index=index)
         return distances
     def nearest_station(self, df, lat_col='latitude', lon_col='longitude'):
-        station_md = self.station_metadata()
         nearest = []
         index = []
         for point in df.itertuples():
             index.append(point.Index)
             distances = self.station_distances(getattr(point, lat_col), getattr(point, lon_col))
-            nearest.append(station_md.loc[distances.idxmin()]['name'])
+            nearest.append(self.station_metadata.loc[distances.idxmin()]['name'])
         return pd.Series(nearest, index=index)
-    def cast_to_station(self, ctd_metadata=None):
-        if ctd_metadata is None:
-            ctd_metadata = Ctd(self.cruise).metadata()
+    def cast_to_station(self, ctd_metadata):
         df = ctd_metadata.copy()
-        df['nearest_station'] = self.nearest_station(df)
-        return df
+        s = self.nearest_station(df)
+        return df.merge(s.rename('nearest_station'), left_index=True, right_index=True)
