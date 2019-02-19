@@ -77,6 +77,8 @@ class CtdMetadataView(CtdView):
             md = read_product_csv(path)
         else:
             md = self.parser(cruise).metadata()
+        if 'nearest_station' in md.columns:
+            return dataframe_response(md, filename, extension)
         # now merge with nearest station
         smd = None
         _, path = StationsResolver(cruise).find_file()
