@@ -120,10 +120,10 @@ class CtdCastView(CtdView):
         if extension is None: extension = 'json'
         filename, path = self.resolver(cruise).cast(cast)
         if path is not None:
-            cast = read_product_csv(path)
+            df = read_product_csv(path)
         else:
-            cast = self.parser(cruise).cast(cast)
-        return dataframe_response(cast, filename, extension)
+            df = self.parser(cruise).cast(cast)
+        return dataframe_response(df, filename, extension)
 
 class UnderwayView(View):
     def get(self, request, cruise, extension=None):
