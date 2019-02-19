@@ -1,8 +1,19 @@
 from . import logger
 
-from neslter.parsing.files import Resolver
+from neslter.parsing.files import Resolver, find_file
 from neslter.parsing.utils import write_dt
 from neslter.parsing.elog import EventLog
+
+EVENT_LOG = 'elog'
+
+class EventLogResolver(Resolver):
+    def __init__(self, cruise, **kw):
+        super(EventLogResolver, self).__init__(**kw)
+        self.cruise = cruise
+    def find_file(self):
+        filename = '{}_elog'.format(self.cruise)
+        dirs = self.directories(EVENT_LOG, self.cruise)
+        return filename, find_file(dirs, filename, extension='csv')
 
 def generate_elog_products(cruise, fail_fast=False):
     resolver = Resolver()

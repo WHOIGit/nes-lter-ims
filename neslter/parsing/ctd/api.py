@@ -8,9 +8,7 @@ from .asc import parse_cast
 class Ctd(object):
     def __init__(self, cruise, check_exists=True):
         self.cruise = cruise
-        r, p = Resolver().directories('ctd', cruise)
-        self.raw_dir = r
-        self.product_dir = p
+        self.raw_dir = Resolver().raw_directory('ctd', cruise)
     def casts(self):
         # return a list of the cast numbers
         return [int(i) for i in sorted(self.metadata()['cast'].unique())]

@@ -1,8 +1,35 @@
 from . import logger
 
-from neslter.parsing.files import Resolver
+from neslter.parsing.files import Resolver, find_file
+import os
+
 from neslter.parsing.ctd import Ctd
 from neslter.parsing.utils import write_dt
+
+CTD = 'ctd'
+
+class CtdResolver(Resolver):
+    def __init__(self, cruise, **kw):
+        super(CtdResolver, self).__init__(**kw)
+        self.cruise = cruise
+    def find_file(self, filename):
+        dirs = self.directories(CTD, self.cruise)
+        return filename, find_file(dirs, filename, extension='csv')
+    def cast(self, cast_number):
+        filename = '{}_ctd_cast_{}'.format(self.cruise, cast_number)
+        return self.find_file(filename)
+    def bottles(self):
+        # return data for each bottle
+        filename = '{}_ctd_bottles'.format(self.cruise)
+        return self.find_file(filename)
+    def bottle_summary(self):
+        # summarize bottle data
+        filename = '{}_ctd_bottle_summary'.format(self.cruise)
+        return self.find_file(filename)
+    def metadata(self):
+        # return basic metadata from the header files
+        filename = '{}_ctd_metadata'.format(self.cruise)
+        return self.find_file(filename)
 
 def generate_ctd_products(cruise, fail_fast=False):
     resolver = Resolver()

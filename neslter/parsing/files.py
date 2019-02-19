@@ -5,6 +5,7 @@ from config import DATA_ROOT
 
 RAW = 'raw'
 PRODUCTS = 'products'
+CORRECTED = 'corrected'
 ALL = 'all'
 
 FILENAME = 'filename'
@@ -36,8 +37,14 @@ class Resolver(object):
         proc_dir = self.product_directory(data_type, cruise, makedirs=makedirs)
         name_ext = '{}.{}'.format(name, extension)
         return os.path.join(proc_dir, name_ext)
+    def corrected_directory(self, data_type, cruise=ALL, makedirs=False):
+        corr_dir = os.path.join(self.data_root, CORRECTED, cruise, data_type)
+        if makedirs:
+            safe_makedirs(corr_dir)
+        return corr_dir
     def directories(self, data_type, cruise):
         return self.raw_directory(data_type, cruise), \
+            self.corrected_directory(data_type, cruise), \
             self.product_directory(data_type, cruise)
     def cruises(self):
         c = []
@@ -46,6 +53,15 @@ class Resolver(object):
             if fn != ALL:
                 c.append(fn)
         return c
+
+def find_file(directories, filename, extension=None):
+    for directory in directories:
+        path = os.path.join(directory, filename)
+        if extension is not None:
+            path = '{}.{}'.format(path, extension)
+        if os.path.exists(path):
+            return path
+    return None
 
 ENDEAVOR = 'Endeavor'
 ARMSTRONG = 'Armstrong'
