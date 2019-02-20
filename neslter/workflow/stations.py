@@ -1,12 +1,16 @@
-from neslter.parsing.files import Resolver, find_file
+from neslter.parsing.stations import Stations
+from .api import Workflow
+
+from neslter.parsing.files import Resolver
 
 METADATA = 'metadata'
 
-class StationsResolver(Resolver):
-    def __init__(self, cruise, **kw):
-        super(StationsResolver, self).__init__(**kw)
+class StationsWorkflow(Workflow):
+    def __init__(self, cruise):
         self.cruise = cruise
-    def find_file(self):
-        filename = '{}_stations'.format(self.cruise)
-        dirs = self.directories(METADATA, self.cruise)
-        return filename, find_file(dirs, filename, extension='csv')
+    def directories(self):
+        return Resolver().directories(METADATA, self.cruise)
+    def filename(self):
+        return '{}_stations'.format(self.cruise)
+    def produce_product(self):
+        return Stations(self.cruise).to_dataframe()

@@ -14,12 +14,15 @@ from neslter.parsing.underway import Underway
 from neslter.parsing.elog import EventLog
 from neslter.parsing.stations import Stations, StationLocator
 
-from neslter.workflow.ctd import CtdResolver
-from neslter.workflow.underway import UnderwayResolver
-from neslter.workflow.elog import EventLogResolver
-from neslter.workflow.stations import StationsResolver
+from neslter.workflow.ctd import CtdCastWorkflow, CtdBottlesWorkflow, \
+        CtdBottleSummaryWorkflow, CtdMetadataWorkflow
+from neslter.workflow.stations import StationsWorkflow
+from neslter.workflow.elog import EventLogWorkflow
+from neslter.workflow.underway import UnderwayWorkflow
 
 def dataframe_response(df, filename, extension='json'):
+    if extension is None:
+        extension = 'json'
     filename = '{}.{}'.format(filename, extension)
     if extension == 'json':
         return HttpResponse(df.to_json(), content_type='application/json')
@@ -34,6 +37,11 @@ def dataframe_response(df, filename, extension='json'):
     else:
         raise Http404('unsupported file type .{}'.format(extension))   
 
+def workflow_response(workflow, extension=None):
+    filename = workflow.filename()
+    df = workflow.get_product()
+    return dataframe_response(df, filename, extension)
+
 def read_product_csv(path):
     """file must exist and be a CSV file"""
     return pd.read_csv(path, index_col=None, encoding='utf-8')
@@ -46,134 +54,52 @@ class CruisesView(View):
             'cruises': cruises
             })
 
-class CtdView(View):
-    """abstract view for handling CTD data"""
-    def parser(self, cruise):
-        try:
-            parser = Ctd(cruise.lower())
-        except KeyError as exc:
-            # cruise not found
-            raise Http404(str(exc))
-        return parser
-    def resolver(self, cruise):
-        return CtdResolver(cruise)
-
-def list_casts(cruise):
-    resolver = CtdResolver(cruise)
-    parser = Ctd(cruise.lower())
-    filename, path = resolver.metadata()
-    if path is not None:
-        md = read_product_csv(path)
-    else:
-        md = parser(cruise).metadata()
-    casts = [int(i) for i in sorted(md['cast'].unique())]
-    return casts
-
-class CtdCastsView(CtdView):
+class CtdCastsView(View):
     def get(self, request, cruise): # JSON only
-        casts = list_casts(cruise)
+        wf = CtdMetadataWorkflow(cruise)
+        md = wf.get_product()
+        casts = [int(i) for i in sorted(md['cast'].unique())]
         return JsonResponse({'casts': casts})
 
-class CtdMetadataView(CtdView):
+class CtdMetadataView(View):
     def get(self, request, cruise, extension=None):
-        if extension is None: extension = 'json'
-        # read ctd metadata
-        filename, path = self.resolver(cruise).metadata()
-        if path is not None:
-            md = read_product_csv(path)
-        else:
-            md = self.parser(cruise).metadata()
-        if 'nearest_station' in md.columns:
-            return dataframe_response(md, filename, extension)
-        # now merge with nearest station
-        smd = None
-        _, path = StationsResolver(cruise).find_file()
-        if path is not None:
-            smd = read_product_csv(path)
-        else:
-            try:
-                stations = Stations(cruise)
-                smd = stations.to_dataframe()
-            except KeyError:
-                pass
-        if smd is not None:
-            station_locator = StationLocator(smd)
-            md = station_locator.cast_to_station(md)
+        ctd_wf = CtdMetadataWorkflow(cruise)
+        md = ctd_wf.get_product()
+        # get station metadata to add nearest_station
+        # FIXME do this in workflow
+        st_wf = StationsWorkflow(cruise)
+        smd = st_wf.get_product()
+        station_locator = StationLocator(smd)
+        md = station_locator.cast_to_station(md)
+        filename = ctd_wf.filename()
         return dataframe_response(md, filename, extension)
 
-class CtdBottlesView(CtdView):
+class CtdBottlesView(View):
     def get(self, request, cruise, extension=None):
-        if extension is None: extension = 'json'
-        filename, path = self.resolver(cruise).bottles()
-        if path is not None:
-            btl = read_product_csv(path)
-        else:
-            btl = self.parser(cruise).bottles()
-        return dataframe_response(btl, filename, extension)
+        wf = CtdBottlesWorkflow(cruise)
+        return workflow_response(wf, extension)
 
-class CtdBottleSummaryView(CtdView):
+class CtdBottleSummaryView(View):
     def get(self, request, cruise, extension=None):
-        if extension is None: extension = 'json'
-        filename, path = self.resolver(cruise).bottle_summary()
-        if path is not None:
-            btl_summary = read_product_csv(path)
-        else:
-            btl_summary = self.parser(cruise).bottle_summary()
-        return dataframe_response(btl_summary, filename, extension)
+        wf = CtdBottleSummaryWorkflow(cruise)
+        return workflow_response(wf, extension)
 
-class CtdCastView(CtdView):
+class CtdCastView(View):
     def get(self, request, cruise, cast, extension=None):
-        casts = list_casts(cruise)
-        if cast not in casts:
-            raise Http404('cast {} not found'.format(cast))
-        if extension is None: extension = 'json'
-        filename, path = self.resolver(cruise).cast(cast)
-        if path is not None:
-            df = read_product_csv(path)
-        else:
-            try:
-                df = self.parser(cruise).cast(cast)
-            except KeyError:
-                raise Http404('cast {} not found'.format(cast))
-        return dataframe_response(df, filename, extension)
+        wf = CtdCastWorkflow(cruise, cast)
+        return workflow_response(wf, extension)
 
 class UnderwayView(View):
     def get(self, request, cruise, extension=None):
-        if extension is None: extension = 'json'
-        filename, path = UnderwayResolver(cruise).find_file()
-        if path is not None:
-            uw = read_product_csv(path)
-        else:
-            try:
-                uw = Underway(cruise).to_dataframe()
-            except KeyError as exc:
-                raise Http404(str(exc))
-        return dataframe_response(uw, filename, extension)
+        wf = UnderwayWorkflow(cruise)
+        return workflow_response(wf, extension)
 
 class EventLogView(View):
     def get(self, request, cruise, extension=None):
-        if extension is None: extension = 'json'
-        filename, path = EventLogResolver(cruise).find_file()
-        if path is not None:
-            df = read_product_csv(path)
-        else:
-            try:
-                elog = EventLog(cruise)
-            except KeyError as exc:
-                raise Http404(str(exc))
-            df = elog.to_dataframe()
-        return dataframe_response(df, filename, extension)
+        wf = EventLogWorkflow(cruise)
+        return workflow_response(wf, extension)
 
 class StationsView(View):
     def get(self, request, cruise, extension=None):
-        if extension is None: extension = 'json'
-        filename, path = StationsResolver(cruise).find_file()
-        if path is not None:
-            df = read_product_csv(path)
-        else:
-            try:
-                stations = Stations(cruise)
-            except KeyError as exc:
-                raise Http404(str(exc))
-            df = stations.to_dataframe()
-        return dataframe_response(df, filename, extension)
+        wf = StationsWorkflow(cruise)
+        return workflow_response(wf, extension)

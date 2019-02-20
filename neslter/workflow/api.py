@@ -1,24 +1,23 @@
 from . import logger
 
-from neslter.parsing.files import Resolver
+import pandas as pd
 
-from .ctd import generate_ctd_products
-from .elog import generate_elog_products
-from .underway import generate_underway_products
+from neslter.parsing.files import Resolver, find_file 
 
-def generate_products(cruise, fail_fast=False):
-    logger.info('generating products for {}'.format(cruise))
-    logger.info('generating CTD products for {}'.format(cruise))
-    generate_ctd_products(cruise, fail_fast=fail_fast)
-    logger.info('generating underway products for {}'.format(cruise))
-    generate_underway_products(cruise, fail_fast=fail_fast)
-    logger.info('generating event log products for {}'.format(cruise))
-    generate_elog_products(cruise, fail_fast=fail_fast)
-    logger.info('done generating products for {}'.format(cruise))
+def read_product_csv(path):
+    """file must exist and be a CSV file"""
+    return pd.read_csv(path, index_col=None, encoding='utf-8')
 
-def generate_all_products(fail_fast=False):
-    logger.info('generating products')
-    resolver = Resolver()
-    for cruise in resolver.cruises():
-        generate_products(cruise, fail_fast=fail_fast)
-    logger.info('product generation complete')
+class Workflow(object):
+    def find_product(self):
+        """return filename and the path to the product CSV or None if not exists"""
+        filename = self.filename()
+        dirs = self.directories()
+        return filename, find_file(dirs, filename, extension='csv')
+    def get_product(self):
+        """don't override this method"""
+        filename, path = self.find_product()
+        if path is not None:
+            return read_product_csv(path)
+        else:
+            return self.produce_product()
