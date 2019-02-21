@@ -36,7 +36,8 @@ class _EndeavorParser(object):
         df = clean_column_names(pd.concat(dfs), {
                 DATETIME_ISO8601: DATETIME
             })
-        df.index = pd.to_datetime(df[DATETIME])
+        df[DATETIME] = pd.to_datetime(df[DATETIME])
+        df.index = df[DATETIME]
         return df
     def to_dataframe(self):
         return self.df
