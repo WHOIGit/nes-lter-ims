@@ -4,6 +4,10 @@ from .api import Workflow
 from neslter.parsing.files import Resolver
 from neslter.parsing.ctd import Ctd
 
+from .stations import StationsWorkflow
+
+from neslter.parsing.stations import Stations, StationLocator
+
 CTD = 'ctd'
 
 class CtdWorkflow(Workflow):
@@ -41,4 +45,10 @@ class CtdMetadataWorkflow(CtdWorkflow):
     def filename(self):
         return '{}_ctd_metadata'.format(self.cruise)
     def produce_product(self):
-        return Ctd(self.cruise).metadata()
+        md = Ctd(self.cruise).metadata()
+        # now add nearest_station
+        st_wf = StationsWorkflow(self.cruise)
+        smd = st_wf.get_product()
+        station_locator = StationLocator(smd)
+        md = station_locator.cast_to_station(md)
+        return md
