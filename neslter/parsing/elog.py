@@ -89,17 +89,14 @@ class EventLog(object):
         addns_path = additions_path(cruise)
         if addns_path is not None:
             self.apply_additions(addns_path)
-        # FIXME this is cruise-specific
-        if cruise == 'en627':
-            self.fix_en627_cast_numbers()
-        self.add_underway_locations()
         hdr_dir = hdr_path(cruise)
         tp = toi_path(cruise)
         if tp is not None:
             self.remove_action(TOI_DISCRETE)
             self.add_events(clean_toi_discrete(tp))
-        if hdr_dir is not None and cruise != 'en627': # FIXME remove cruise-specific clause
-            self.merge_ctd_comments(hdr_dir)
+        if hdr_dir is not None:
+            self.add_ctd_deployments(hdr_dir)
+        self.add_underway_locations()
         self.fix_incubation_cast_numbers()
     def add_events(self, events):
         self.df = pd.concat([self.df, events], sort=True).sort_values(DATETIME)
@@ -121,17 +118,10 @@ class EventLog(object):
         slic = (df[INSTRUMENT] == INCUBATION) & ~(df[CAST].isna())
         df.loc[slic, CAST] = df.loc[slic, CAST].astype('str').str.replace('C','').astype(int)
         self.df = df
-    def merge_ctd_comments(self, hdr_dir):
+    def add_ctd_deployments(self, hdr_dir):
         hdr = self.parse_ctd_hdrs(hdr_dir)
-        self.remove_ctd_recoveries()
-        ctd = self.ctd_events()
-        # now merge comments
-        comments = hdr.merge(ctd, on='Cast')[['Cast','Comment_y']].drop_duplicates()
-        comments = comments[~(comments['Comment_y'].isna())]
-        merged = hdr.merge(comments, on='Cast', how='left')
-        merged['Comment'] = merged.pop('Comment_y')
         self.remove_instrument(CTD_INSTRUMENT)
-        self.add_events(merged)
+        self.add_events(hdr)
     def apply_corrections(self, corr_path):
         corr = pd.read_excel(corr_path)
         corr[DATETIME] = pd.to_datetime(corr[DATETIME], utc=True)
@@ -159,8 +149,10 @@ class EventLog(object):
             raise
         uw_lat = self.df[DATETIME].map(lambda t: uw.time_to_lat(t))
         uw_lon = self.df[DATETIME].map(lambda t: uw.time_to_lon(t))
-        self.df[LAT] = self.df[LAT].combine_first(uw_lat)
-        self.df[LON] = self.df[LON].combine_first(uw_lon)
+        #self.df[LAT] = self.df[LAT].combine_first(uw_lat)
+        #self.df[LON] = self.df[LON].combine_first(uw_lon)
+        self.df[LAT] = uw_lat
+        self.df[LON] = uw_lon
     def to_dataframe(self):
         self.df.index = range(len(self.df))
         self.df = self.df.sort_values(DATETIME)
