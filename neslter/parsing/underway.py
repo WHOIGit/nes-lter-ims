@@ -62,7 +62,7 @@ class _ArmstrongParser(object):
         assert resolution == 60, 'unsupported resolution {}'.format(resolution)
         REGEX = r'AR\d+\d{4}_\d{4}.csv'
         dfs = []
-        for f in os.listdir(csv_dir):
+        for f in sorted(os.listdir(csv_dir)):
             if re.match(REGEX, f):
                 df = pd.read_csv(os.path.join(csv_dir, f), skiprows=1, na_values=[' NAN', ' NODATA'])
                 dfs.append(df)     
