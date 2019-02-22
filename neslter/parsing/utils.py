@@ -63,7 +63,7 @@ def float_to_datetime(s, format='%Y%m%d'):
     '20180830' will be parsed as the float 20180830.0.
     convert back to datetimes"""
     def convert(value):
-        return pd.to_datetime(str(int(value)), format=format)
+        return pd.to_datetime(str(int(value)), format=format, utc=True)
     return s.map(convert, na_action='ignore')
     # return pd.to_datetime(s.astype(int).astype(str), format=format)
 
@@ -74,7 +74,7 @@ def doy_to_datetime(doy, year, zero_based=False):
     o = pd.Timestamp(origin)
     if not zero_based:
         adjusted_doy = doy - 1
-    return pd.to_datetime(adjusted_doy, unit='D', origin=o)
+    return pd.to_datetime(adjusted_doy, unit='D', origin=o, utc=True)
 
 def datetime_to_rfc822(dt, include_dow=False):
     dow = '%a, ' if include_dow else ''
@@ -84,10 +84,10 @@ def datetime_to_rfc822(dt, include_dow=False):
 def date_time_to_datetime(date, time):
     try:
         # for Series objects (e.g., DataFrame columns)
-        return pd.to_timedelta(time.astype(str)) + pd.to_datetime(date)
+        return pd.to_timedelta(time.astype(str)) + pd.to_datetime(date, utc=True)
     except AttributeError:
         # for a single date/time
-        return pd.to_timedelta(time) + pd.to_datetime(date)
+        return pd.to_timedelta(time) + pd.to_datetime(date, utc=True)
 
 def format_floats(floats, precision=3, nan_string='NaN'):
     """convert an iterable of floating point numbers to

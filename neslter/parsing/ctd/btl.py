@@ -129,7 +129,7 @@ class BtlFile(CtdTextParser):
 
         # convert df columns to reasonable types
         df[BOTTLE_COL] = df[BOTTLE_COL].astype(int)
-        df[DATE_COL] = pd.to_datetime(df[DATE_COL])
+        df[DATE_COL] = pd.to_datetime(df[DATE_COL], utc=True)
 
         for c in df.columns[2:]:
             df[c] = df[c].astype(float)

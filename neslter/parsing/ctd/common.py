@@ -81,7 +81,7 @@ class CtdTextParser(TextParser):
     def _parse_time(self):
         line = self._line_that_matches(r'\* NMEA UTC \(Time\)')
         time = re.match(r'.*= (.*)', line).group(1)
-        self.time = pd.to_datetime(time)
+        self.time = pd.to_datetime(time, utc=True)
     def _parse_lat_lon(self):
         lat_line = self._line_that_matches(r'\* NMEA Latitude')
         lon_line = self._line_that_matches(r'\* NMEA Longitude')

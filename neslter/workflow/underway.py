@@ -23,7 +23,7 @@ class TimeToLocation(object):
     def __init__(self, underway_data):
         """underway data is the product of the underway workflow"""
         self.uw = underway_data.copy()
-        self.uw.index = pd.to_datetime(self.uw[DATETIME])
+        self.uw.index = pd.to_datetime(self.uw[DATETIME], utc=True)
     def _infer_lat_lon_cols(self):
         if 'gps_furuno_latitude' in self.uw.columns:
             # FIXME search for other gps models
@@ -34,7 +34,7 @@ class TimeToLocation(object):
             raise KeyError('cannot infer lat/lon columns of underway data')
     def time_to_location(self, time):
         lat_col, lon_col = self._infer_lat_lon_cols()
-        index = max(0, self.uw.index.searchsorted(pd.to_datetime(time)) - 1)
+        index = max(0, self.uw.index.searchsorted(pd.to_datetime(time), utc=True) - 1)
         row = self.uw.iloc[index]
         return row[lat_col], row[lon_col]
     def time_to_lat(self, time):
