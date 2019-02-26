@@ -49,7 +49,9 @@ class Resolver(object):
     def cruises(self):
         c = []
         raw = os.path.join(self.data_root, RAW)
-        for fn in os.listdir(raw):
+        for fn in sorted(os.listdir(raw)):
+            if not os.path.isdir(os.path.join(raw, fn)):
+                continue
             if fn != ALL:
                 c.append(fn)
         return c
