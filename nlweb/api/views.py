@@ -35,7 +35,12 @@ def dataframe_response(df, filename, extension='json'):
 
 def workflow_response(workflow, extension=None):
     filename = workflow.filename()
-    df = workflow.get_product()
+    try:
+        df = workflow.get_product()
+    except KeyError:
+        raise Http404('data not found')
+    except IndexError:
+        raise Http404('data not found')
     return dataframe_response(df, filename, extension)
 
 class CruisesView(View):
@@ -47,7 +52,10 @@ class CruisesView(View):
 class CtdCastsView(View):
     def get(self, request, cruise): # JSON only
         wf = CtdMetadataWorkflow(cruise)
-        md = wf.get_product()
+        try:
+            md = wf.get_product()
+        except KeyError:
+            raise Http404()
         casts = [int(i) for i in sorted(md['cast'].unique())]
         return JsonResponse({'casts': casts})
 
