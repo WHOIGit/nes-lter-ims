@@ -19,7 +19,6 @@ from neslter.workflow.underway import UnderwayWorkflow
 def dataframe_response(df, filename, extension='json'):
     if extension is None:
         extension = 'json'
-    filename = '{}.{}'.format(filename, extension)
     if extension == 'json':
         return HttpResponse(df.to_json(), content_type='application/json')
     elif extension == 'csv':
@@ -28,7 +27,8 @@ def dataframe_response(df, filename, extension='json'):
         csv = sio.getvalue()
         resp = HttpResponse(csv, content_type='text/csv')
         if filename is not None:
-            resp['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+            csv_filename = '{}.csv'.format(filename)
+            resp['Content-Disposition'] = 'attachment; filename="{}"'.format(csv_filename)
         return resp
     else:
         raise Http404('unsupported file type .{}'.format(extension))   
