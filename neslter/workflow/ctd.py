@@ -26,6 +26,9 @@ class CtdCastWorkflow(CtdWorkflow):
         cast_data = Ctd(self.cruise).cast(self.cast)
         # now add timestamps
         md = CtdMetadataWorkflow(self.cruise).get_product()
+        # the following will raise IndexError if cast is not in cast metadata
+        if not 'times' in cast_data.columns: # no time data available
+            return cast_data
         cast_start = pd.to_datetime(md[md.cast == self.cast].iloc[0].date)
         timestamp = cast_start + pd.to_timedelta(cast_data['times'], unit='s')
         cast_data['date'] = timestamp
@@ -56,7 +59,11 @@ class CtdMetadataWorkflow(CtdWorkflow):
         md = Ctd(self.cruise).metadata()
         # now add nearest_station
         st_wf = StationsWorkflow(self.cruise)
-        smd = st_wf.get_product()
-        station_locator = StationLocator(smd)
-        md = station_locator.cast_to_station(md)
+        try:
+            smd = st_wf.get_product()
+            station_locator = StationLocator(smd)
+            md = station_locator.cast_to_station(md)
+        except KeyError:
+            # no station metadata. That's OK
+            pass
         return md
