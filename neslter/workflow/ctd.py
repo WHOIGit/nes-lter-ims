@@ -1,3 +1,5 @@
+import pandas as pd
+
 from . import logger
 
 from .api import Workflow
@@ -21,7 +23,13 @@ class CtdCastWorkflow(CtdWorkflow):
     def filename(self):
         return '{}_ctd_cast_{}'.format(self.cruise, self.cast)
     def produce_product(self):
-        return Ctd(self.cruise).cast(self.cast)
+        cast_data = Ctd(self.cruise).cast(self.cast)
+        # now add timestamps
+        md = CtdMetadataWorkflow(self.cruise).get_product()
+        cast_start = pd.to_datetime(md[md.cast == self.cast].iloc[0].date)
+        timestamp = cast_start + pd.to_timedelta(cast_data['times'], unit='s')
+        cast_data['date'] = timestamp
+        return cast_data
 
 class CtdBottlesWorkflow(CtdWorkflow):
     def __init__(self, cruise):
