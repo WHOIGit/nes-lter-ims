@@ -143,6 +143,13 @@ def update_cell(df, ix, col, new_value):
     df.at[ix, col] = new_value
     return df
 
+def interpolate_timeseries(data, new_timebase):
+    """data should be time-indexed, new_timebase should be a series-like list of datetimes.
+    both must be sorted"""
+    idx = data.index.union(new_timebase)
+    interped = data.reindex(idx).interpolate().reindex(new_timebase)
+    return interped
+
 # subclass of DataFrame that carries a property called "metadata"
 # which is intended to be a dict of k/v pairs
 
