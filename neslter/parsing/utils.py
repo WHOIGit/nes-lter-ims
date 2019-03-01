@@ -169,7 +169,7 @@ def wide_to_long(df, wide_cols_list, value_cols, long_col, long_labels):
     
     And I pass these arguments:
     
-    wide_cols_list = [['x_a','x_b'],['y_a','y_b']]
+    wide_cols_list = [['x_a','y_a'],['x_b','y_b']]
     value_cols = ['x','y']
     long_col = 'replicate'
     long_labels = ['a','b']
@@ -183,21 +183,20 @@ def wide_to_long(df, wide_cols_list, value_cols, long_col, long_labels):
     | something | 2 | 20 |     b     |
     +-----------+---+----+-----------+
     """
-    assert len(wide_cols_list) == len(value_cols)
     assert len(wide_cols_list) == len(long_labels)
-    for wcs in wide_cols_list:
-        assert len(wcs) == len(long_labels)
+    for w in wide_cols_list:
+        assert len(w) == len(value_cols)
     exclude_cols = []
     for w in wide_cols_list:
         exclude_cols = exclude_cols + w
     common_cols = [c for c in df.columns if c not in exclude_cols]
     dfs = []
-    for wide_cols, value_col, long_label in zip(wide_cols_list, value_cols, long_labels):
+    for wide_cols, long_label in zip(wide_cols_list, long_labels):
         sdf = df[common_cols + wide_cols].copy()
-        sdf.columns = common_cols + value_cols
-        sdf[long_col] = long_label
+        sdf[long_col] =  long_label
+        sdf.columns = common_cols + value_cols + [long_col]
         dfs.append(sdf)
-    return pd.concat(dfs).sort_index()[dfs[0].columns]
+    return pd.concat(dfs).sort_index()
 
 # subclass of DataFrame that carries a property called "metadata"
 # which is intended to be a dict of k/v pairs
