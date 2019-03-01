@@ -211,7 +211,7 @@ def parse_btl(in_path, add_depth=True, add_lat_lon=True):
     df = df.astype({ 'cast': int, 'niskin': int })
     return df
 
-def compile_btl_files(in_dir, add_depth=False, add_lat_lon=True, summary=False):
+def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True, summary=False):
     """convert a set of bottle files to a single dataframe"""
     compiled_df = None
     for path in find_btl_files(in_dir):
