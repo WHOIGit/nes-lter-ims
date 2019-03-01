@@ -150,6 +150,55 @@ def interpolate_timeseries(data, new_timebase):
     interped = data.reindex(idx).interpolate().reindex(new_timebase)
     return interped
 
+def wide_to_long(df, wide_cols_list, value_cols, long_col, long_labels):
+    """converts selected columns from wide to long format. params:
+    
+    - df: the input dataframe
+    - wide_cols_list: for each set of wide columns, a list of their names
+    - value_cols: for each set of wide columns, the name of the long column to hold the values
+    - long_col: the name of the column to indicate which set of wide columns the value comes from
+    - long_labels: for each set of wide columns, what to call it in the long_col values.
+    
+    For example if I have the following DataFrame:
+    
+    +-----------+-----+-----+-----+-----+
+    | other_col | x_a | x_b | y_a | y_b |
+    +-----------+-----+-----+-----+-----+
+    | something |  1  |  2  |  10 |  20 |
+    +-----------+-----+-----+-----+-----+
+    
+    And I pass these arguments:
+    
+    wide_cols_list = [['x_a','x_b'],['y_a','y_b']]
+    value_cols = ['x','y']
+    long_col = 'replicate'
+    long_labels = ['a','b']
+    
+    It'll generate this dataframe:
+    
+    +-----------+---+----+-----------+
+    | other_col | x |  y | replicate |
+    +-----------+---+----+-----------+
+    | something | 1 | 10 |     a     |
+    | something | 2 | 20 |     b     |
+    +-----------+---+----+-----------+
+    """
+    assert len(wide_cols_list) == len(value_cols)
+    assert len(wide_cols_list) == len(long_labels)
+    for wcs in wide_cols_list:
+        assert len(wcs) == len(long_labels)
+    exclude_cols = []
+    for w in wide_cols_list:
+        exclude_cols = exclude_cols + w
+    common_cols = [c for c in df.columns if c not in exclude_cols]
+    dfs = []
+    for wide_cols, value_col, long_label in zip(wide_cols_list, value_cols, long_labels):
+        sdf = df[common_cols + wide_cols].copy()
+        sdf.columns = common_cols + value_cols
+        sdf[long_col] = long_label
+        dfs.append(sdf)
+    return pd.concat(dfs).sort_index()[dfs[0].columns]
+
 # subclass of DataFrame that carries a property called "metadata"
 # which is intended to be a dict of k/v pairs
 
