@@ -42,10 +42,13 @@ class Resolver(object):
         if makedirs:
             safe_makedirs(corr_dir)
         return corr_dir
-    def directories(self, data_type, cruise):
-        return self.raw_directory(data_type, cruise), \
-            self.corrected_directory(data_type, cruise), \
-            self.product_directory(data_type, cruise)
+    def directories(self, data_type, cruise, skip_raw=False):
+        dirs = []
+        if not skip_raw:
+            dirs.append(self.raw_directory(data_type, cruise))
+        dirs.append(self.corrected_directory(data_type, cruise))
+        dirs.append(self.product_directory(data_type, cruise))
+        return dirs
     def cruises(self):
         c = []
         raw = os.path.join(self.data_root, RAW)

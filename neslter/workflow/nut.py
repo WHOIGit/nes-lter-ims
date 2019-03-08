@@ -12,6 +12,8 @@ NUT='nut'
 class NutPlusBottlesWorkflow(Workflow):
     def __init__(self, cruise):
         self.cruise = cruise.lower()
+    def directories(self):
+        return Resolver().directories(NUT, self.cruise, skip_raw=True)
     def filename(self):
         return '{}_nut'.format(self.cruise)
     def produce_product(self):

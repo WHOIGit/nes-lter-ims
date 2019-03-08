@@ -19,4 +19,6 @@ urlpatterns = [
     path('events/<cruise>', views.EventLogView.as_view(), name='elog_json'),
     path('stations/<cruise>.<extension>', views.StationsView.as_view(), name='stations'),
     path('stations/<cruise>', views.StationsView.as_view(), name='stations_json'),
+    path('nut/<cruise>.<extension>', views.NutPlusBottlesView.as_view(), name='nut'),
+    path('nut/<cruise>', views.NutPlusBottlesView.as_view(), name='nut_json'),
 ]

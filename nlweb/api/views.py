@@ -15,6 +15,7 @@ from neslter.workflow.ctd import CtdCastWorkflow, CtdBottlesWorkflow, \
 from neslter.workflow.stations import StationsWorkflow
 from neslter.workflow.elog import EventLogWorkflow
 from neslter.workflow.underway import UnderwayWorkflow
+from neslter.workflow.nut import NutPlusBottlesWorkflow
 
 def dataframe_response(df, filename, extension='json'):
     if extension is None:
@@ -37,10 +38,12 @@ def workflow_response(workflow, extension=None):
     filename = workflow.filename()
     try:
         df = workflow.get_product()
-    except KeyError:
-        raise Http404('data not found')
-    except IndexError:
-        raise Http404('data not found')
+    except:
+        raise
+    #except KeyError:
+    #    raise Http404('data not found')
+    #except IndexError:
+    #    raise Http404('data not found')
     return dataframe_response(df, filename, extension)
 
 class CruisesView(View):
@@ -92,4 +95,9 @@ class EventLogView(View):
 class StationsView(View):
     def get(self, request, cruise, extension=None):
         wf = StationsWorkflow(cruise)
+        return workflow_response(wf, extension)
+
+class NutPlusBottlesView(View):
+    def get(self, request, cruise, extension=None):
+        wf = NutPlusBottlesWorkflow(cruise)
         return workflow_response(wf, extension)

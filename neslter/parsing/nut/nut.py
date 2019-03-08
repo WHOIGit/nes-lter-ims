@@ -72,5 +72,4 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     nit['sample_id'] = nit.pop('lter_sample_id').astype(str)
     nut_profile = merged.merge(nit, on='sample_id')
     nut_profile['date'] = pd.to_datetime(nut_profile['date'], utc=True)
-    nut_profile.index = nut_profile['date']
     return nut_profile
