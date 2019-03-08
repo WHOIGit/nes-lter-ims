@@ -36,7 +36,7 @@ class CtdCastWorkflow(CtdWorkflow):
 
 class CtdBottlesWorkflow(CtdWorkflow):
     def __init__(self, cruise):
-        self.cruise = cruise
+        self.cruise = cruise.lower()
     def filename(self):
         return '{}_ctd_bottles'.format(self.cruise)
     def produce_product(self):
@@ -44,7 +44,7 @@ class CtdBottlesWorkflow(CtdWorkflow):
 
 class CtdBottleSummaryWorkflow(CtdWorkflow):
     def __init__(self, cruise):
-        self.cruise = cruise
+        self.cruise = cruise.lower()
     def filename(self):
         return '{}_ctd_bottle_summary'.format(self.cruise)
     def produce_product(self):
@@ -52,7 +52,7 @@ class CtdBottleSummaryWorkflow(CtdWorkflow):
 
 class CtdMetadataWorkflow(CtdWorkflow):
     def __init__(self, cruise):
-        self.cruise = cruise
+        self.cruise = cruise.lower()
     def filename(self):
         return '{}_ctd_metadata'.format(self.cruise)
     def produce_product(self):
