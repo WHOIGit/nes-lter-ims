@@ -47,7 +47,11 @@ def suna2nitrate(cal_file_path, data_file_path, cast_data, t_var='t090c', s_var=
     degc = tsal_interp[t_var]
     psu = tsal_interp[s_var]
     nitrate = ts_corrected_nitrate(t_cal, wavelength, no3, swa, reference, dark_value, degc, psu, data_in, frame_type)
-    return pd.Series(nitrate, index=suna_ts)
+    return pd.DataFrame({
+        'nitrate': nitrate,
+        'temperature': degc,
+        'salinity': psu
+        }, index=suna_ts)
 
 def nutrient_profile(sample_log_path, nut_path, cast_number, cruise='en627'):
     assert os.path.exists(sample_log_path)
@@ -75,6 +79,29 @@ def nutrient_profile(sample_log_path, nut_path, cast_number, cruise='en627'):
     nut_profile.index = pd.to_datetime(nut_profile['date'], utc=True)
     return nut_profile[nut_profile.cast == cast_number]
 
+def compute_nut_vs_suna(cast_data, nitrate, nut_profile, d_var='depsm'):
+    cast_start = cast_data.index[0]
+    # assume the upcast starts at max depth, reasonable for this case
+    upcast_start = cast_data[d_var].idxmax()
+    cast_end = cast_data.index[-1]
+    cast_nit = nitrate[upcast_start:cast_end]
+    nit_df = interpolate_timeseries(cast_nit, nut_profile.index.unique())
+    nitp = nit_df.nitrate
+    nits = nit_df.salinity
+    nitt = nit_df.temperature
+    rep_a = nut_profile[nut_profile['replicate'] == 'a']
+    rep_b = nut_profile[nut_profile['replicate'] == 'b']
+    nutp_a = rep_a['nitrate_nitrite']
+    nutp_b = rep_b['nitrate_nitrite']   
+    dep_a = rep_a['depth']
+    dep_b = rep_b['depth']
+    nuta_vs_suna = pd.DataFrame({'nut': nutp_a, 'suna': nitp, 'depth': dep_a, 'temperature': nitt, 'salinity': nits })
+    nutb_vs_suna = pd.DataFrame({'nut': nutp_b, 'suna': nitp, 'depth': dep_b, 'temperature': nitt, 'salinity': nits })
+    nut_vs_suna = pd.concat([nuta_vs_suna, nutb_vs_suna])
+    nut_vs_suna['date'] = nut_vs_suna.index
+    nut_vs_suna.index = range(len(nut_vs_suna))
+    return nut_vs_suna
+
 def estimate_offset(cast_data, nitrate, nut_profile, d_var='depsm'):
     cast_start = cast_data.index[0]
     # assume the upcast starts at max depth, reasonable for this case
@@ -85,7 +112,7 @@ def estimate_offset(cast_data, nitrate, nut_profile, d_var='depsm'):
     nutp_b = nut_profile[nut_profile['replicate'] == 'b']['nitrate_nitrite']
     metric = []
     offsets = []
-    for offset in np.arange(1,3,0.01):
+    for offset in np.arange(1,5,0.01):
         nitp = interpolate_timeseries(cast_nit + offset, nut_profile.index.unique())
         offsets.append(offset)
         metric.append((nutp_a-nitp).sum())
