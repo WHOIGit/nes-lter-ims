@@ -19,7 +19,8 @@ case for a different naming convention used on
 NES-LTER vessels"""
 CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar22)(\d\d)\.', # Armstrong 22
-    r'(ar\d\d[a-c]?)(\d\d\d)\.', # Armstrong 24, 28
+    r'(ar24)(\d\d\d)\.', # Armstrong 24a
+    r'(ar\d\d[a-c]?)(\d\d\d)\.', # Armstrong 24b/c, 28
     r'(EN\d+).*[Cc]ast(\d+b?)(?:_\w+)?\.', # Endeavor 608, 617
     r'(EN\d+).*(\d{3})\.', # Endeavor 627
 ]
@@ -30,6 +31,9 @@ def pathname2cruise_cast(pathname, skip_bad_filenames=True):
         m = re.match(regex, fn)
         if m is not None:
             cruise, cast = m.groups()
+            # handle issue with old filenames for ar24a
+            if cruise == 'ar24':
+                cruise = 'ar24a'
             cruise = cruise.upper()
             # FIXME hardcoded to deal with problem with EN608 cast "13"
             if cruise.lower() == 'en608' and cast == '13b':
