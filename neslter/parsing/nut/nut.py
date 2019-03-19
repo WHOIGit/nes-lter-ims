@@ -46,7 +46,8 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     # parse the LTER sample log
     raw = pd.read_excel(sample_log_path, na_values='-', dtype={
         'Nut a': str,
-        'Nut b': str
+        'Nut b': str,
+        'Niskin #': str
     })
     df = clean_column_names(raw, {
         'Date \n(UTC)': 'date',
@@ -54,6 +55,9 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
         'Niskin #': 'niskin',
         'Niskin\nTarget\nDepth': 'depth',
     })
+    # for ar24 some niskin numbers are given as a list in the sample log (e.g., "4,5,6")
+    # so pick the first one for now, proposed solution is to average the CTD bottle data
+    df['niskin'] = df['niskin'].fillna('0').str.replace(',.*','',regex=True).astype(int)
     df['Comments'] = df.comments.fillna('')
     # drop rows without an a replicate
     df = df[['cruise','cast','niskin','nut_a','nut_b']].dropna(subset=['nut_a'])
