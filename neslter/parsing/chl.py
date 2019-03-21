@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import re
 
 from .utils import dropna_except, clean_column_names, cast_columns, float_to_datetime, format_dataframe
 
@@ -52,10 +53,11 @@ def parse_chl(chl_xl_path):
     # now parse time in and time out date cols
     for c in ['time_in', 'time_out']:
         df.loc[freeze, c] = np.nan
-        df[c] = pd.to_datetime(df[c])
+        regex = re.compile(r'^ +$')
+        df[c] = pd.to_datetime(df[c].str.replace(regex,'',regex=True))
     # now split the replicate column. '10a' becomes 'a', '<10'
     # FIXME fix this in the original Excel file
-    split_col = df.replicate.str.extract(r'(?P<filter_mesh_size>\d*)(?P<replicate>[a-z)')
+    split_col = df.replicate.str.extract(r'(?P<filter_mesh_size>\d*)(?P<replicate>[a-z])')
     def fms_replace(value, replacement):
         split_col.filter_mesh_size = split_col.filter_mesh_size.replace(value, replacement)
     fms_replace('','>0') # whole seawater
