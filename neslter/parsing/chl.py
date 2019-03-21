@@ -46,6 +46,15 @@ def parse_chl(chl_xl_path):
     # cast all string columns
     str_cols = ['cast', 'niskin', 'sample']
     df = cast_columns(df, str, str_cols, fillna='')
+    # deal with missing values in cast/niskin
+    df['cast'] = df['cast'].str.replace(' +','',regex=True)
+    df['cast'] = df['cast'].replace('',np.nan)
+    df['niskin'] = df['niskin'].str.replace(' +','',regex=True)
+    df['niskin'] = df['niskin'].replace('',np.nan)
+    df = df.dropna(subset=['cast','niskin'])
+    # deal with niskin numbers like 4/5/6 by picking first one
+    df['niskin'] = df['niskin'].str.replace(r'/.*','',regex=True).astype(int)
+    df['cast'] = df['cast'].astype(int)
     # deal with 'freeze' in time_in and time_out columns
     # add freeze column
     freeze = df['time_in'].astype(str).str.lower() == 'freeze'
@@ -53,6 +62,7 @@ def parse_chl(chl_xl_path):
     # now parse time in and time out date cols
     for c in ['time_in', 'time_out']:
         df.loc[freeze, c] = np.nan
+        # deal with whitespace-only time columns
         regex = re.compile(r'^ +$')
         df[c] = pd.to_datetime(df[c].str.replace(regex,'',regex=True))
     # now split the replicate column. '10a' becomes 'a', '<10'
