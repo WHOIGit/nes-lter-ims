@@ -65,21 +65,17 @@ def parse_chl(chl_xl_path):
         # deal with whitespace-only time columns
         regex = re.compile(r'^ +$')
         df[c] = pd.to_datetime(df[c].str.replace(regex,'',regex=True))
-    # now split the replicate column. '10a' becomes 'a', '<10'
-    # FIXME fix this in the original Excel file
-    split_col = df.replicate.str.extract(r'(?P<filter_mesh_size>\d*)(?P<replicate>[a-z])')
+    df.filter_size = df.filter_size.astype(str)
     def fms_replace(value, replacement):
-        split_col.filter_mesh_size = split_col.filter_mesh_size.replace(value, replacement)
-    fms_replace('','>0') # whole seawater
+        df.filter_size = df.filter_size.replace(value, replacement)
+    fms_replace('0','>0') # whole seawater
     fms_replace('10','<10') # we know < a priori
     fms_replace('5','>5') # we know > a priori
     fms_replace('20','>20') # we know > a priori
-    df.replicate = split_col.replicate
-    df['filter_mesh_size'] = split_col.filter_mesh_size
     return df
 
 def subset_chl(parsed_chl):
-    cols = ['cruise','cast','niskin','replicate','vol_filtered','filter_size','filter_mesh_size',
+    cols = ['cruise','cast','niskin','replicate','vol_filtered','filter_size',
         'tau_calibration','fd_calibration',
         'rb','ra','blank','rb_blank','ra_blank',
         'chl','phaeo']
