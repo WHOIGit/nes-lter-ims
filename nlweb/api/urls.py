@@ -21,4 +21,6 @@ urlpatterns = [
     path('stations/<cruise>', views.StationsView.as_view(), name='stations_json'),
     path('nut/<cruise>.<extension>', views.NutPlusBottlesView.as_view(), name='nut'),
     path('nut/<cruise>', views.NutPlusBottlesView.as_view(), name='nut_json'),
+    path('chl/<cruise>.<extension>', views.ChlView.as_view(), name='chl'),
+    path('chl/<cruise>', views.ChlView.as_view(), name='chl_json'),
 ]

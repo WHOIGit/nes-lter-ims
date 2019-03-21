@@ -78,6 +78,13 @@ def parse_chl(chl_xl_path):
     df['filter_mesh_size'] = split_col.filter_mesh_size
     return df
 
+def subset_chl(parsed_chl):
+    cols = ['cruise','cast','niskin','replicate','vol_filtered','filter_size','filter_mesh_size',
+        'tau_calibration','fd_calibration',
+        'rb','ra','blank','rb_blank','ra_blank',
+        'chl','phaeo']
+    return parsed_chl[cols]
+
 def parse_ryn_chl(chl_xl_path):
     # read Excel file
     df = pd.read_excel(chl_xl_path, dtype = {

@@ -16,6 +16,7 @@ from neslter.workflow.stations import StationsWorkflow
 from neslter.workflow.elog import EventLogWorkflow
 from neslter.workflow.underway import UnderwayWorkflow
 from neslter.workflow.nut import NutPlusBottlesWorkflow
+from neslter.workflow.chl import ChlWorkflow
 
 def dataframe_response(df, filename, extension='json'):
     if extension is None:
@@ -100,4 +101,9 @@ class StationsView(View):
 class NutPlusBottlesView(View):
     def get(self, request, cruise, extension=None):
         wf = NutPlusBottlesWorkflow(cruise)
+        return workflow_response(wf, extension)
+
+class ChlView(View):
+    def get(self, request, cruise, extension=None):
+        wf = ChlWorkflow(cruise)
         return workflow_response(wf, extension)
