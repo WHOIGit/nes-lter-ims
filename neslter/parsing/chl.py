@@ -6,14 +6,6 @@ from .utils import dropna_except, clean_column_names, cast_columns, float_to_dat
 
 """Parsing chlorophyll Excel spreadsheet"""
 
-#RAW_COLS = ['Cruise #:', 'Date', 'LTER\nStation', 'Cast #', 'Niskin #', 'Time\nIn',
-#       'Time\nOut', 'Replicate', 'Vol\nFilt', 'Filter\nSize', 'Vol Extracted',
-#       'Sample', '90% Acetone', 'Dilution During Reading', 'Chl_Cal_Filename',
-#       'tau_Calibration', 'Fd_Calibration', 'Rb', 'Ra', 'blank', 'Rb-blank',
-#       'Ra-blank', 'Chl (ug/l)', 'Phaeo (ug/l)', 'Cal_Date',
-#       'Personnel\nFilter', 'Personnel\nRead', 'Fluorometer', 'Comments',
-#     'Unnamed: 29']
-
 def parse_chl(chl_xl_path):
     """Parse Sosik chl Excel spreadsheet"""
     raw = pd.read_excel(chl_xl_path, dtype={
