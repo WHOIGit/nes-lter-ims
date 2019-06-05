@@ -6,7 +6,7 @@ services:
     container_name: neslter
     volumes:
       - /data:/data
-      - ./neslter:/neslter/nesnlter
+      - ./neslter:/neslter/neslter
       - ./nlweb:/neslter/nlweb
     networks:
       - nginx_network
