@@ -1,0 +1,15 @@
+name: neslter
+channels:
+  - conda-forge
+dependencies:
+- pandas>=0.24.1
+- numpy
+- scipy
+- xlrd
+- lxml
+- jinja2
+- django
+- numexpr
+- psycopg2
+- gdal=2.4.0
+- libiconv=1.15

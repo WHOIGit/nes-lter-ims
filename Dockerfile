@@ -1,15 +1,21 @@
 FROM continuumio/miniconda3
 
+RUN apt-get update
+
+# geospatial libraries
+RUN apt-get install -y binutils libproj-dev gdal-bin
+
 WORKDIR /neslter
 
 RUN apt-get update
 
-# save space by using OpenBLAS instead of mkl
-RUN conda install nomkl
+# save space by using OpenBLAS instead of mkl, install gunicorn
+RUN conda install nomkl gunicorn
+
+COPY environment.yml .
+RUN conda env update -n root -f environment.yml
 
 COPY requirements.txt .
-RUN conda install --file requirements.txt
-RUN conda install gunicorn
 
 # copy the neslter library code
 COPY ./neslter ./neslter

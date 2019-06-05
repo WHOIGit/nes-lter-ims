@@ -6,8 +6,13 @@ services:
     container_name: neslter
     volumes:
       - /data:/data
+      - ./neslter:/neslter/nesnlter
+      - ./nlweb:/neslter/nlweb
     networks:
       - nginx_network
+      - postgres_network
+    depends_on:
+      - postgres
 
   nginx:
     image: nginx:latest
@@ -23,6 +28,20 @@ services:
     networks:
       - nginx_network
 
+  postgres:
+    image: mdillon/postgis:11-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=neslter
+      - POSTGRES_PASSWORD=neslter
+      - POSTGRES_DB=neslter
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    networks:
+      - postgres_network
+
 networks:
   nginx_network:
+    driver: bridge
+  postgres_network:
     driver: bridge
