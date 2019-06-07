@@ -44,10 +44,12 @@ def parse_suna_csv(data_file_path):
 def parse_suna_data(data_file_path):
     df = parse_suna_csv(data_file_path)
 
+
     # ignore dark frames
     df = df[~(df.dark_avg == 0)] # ignore dark frames
 
     timestamp = df.timestamp
+    raw_nitrate = df.nitrate_um
 
     # format parameters for ts_corrected_nitrate
 
@@ -62,4 +64,4 @@ def parse_suna_data(data_file_path):
     data_df = df[data_df_columns]
     data_in = data_df.to_numpy()
 
-    return timestamp, dark_value, frame_type, data_in
+    return timestamp, dark_value, frame_type, data_in, raw_nitrate

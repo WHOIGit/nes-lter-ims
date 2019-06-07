@@ -45,7 +45,7 @@ def suna2nitrate(cal_file_path, data_file_path, cast_data, t_var='t090c', s_var=
     assert s_var in cast_data.columns
     # cast data must be indexed by time, see prepare_cast_data
     t_cal, wavelength, no3, swa, reference = parse_suna_cal(cal_file_path)
-    suna_ts, dark_value, frame_type, data_in = parse_suna_data(data_file_path)
+    suna_ts, dark_value, frame_type, data_in, raw_nitrate = parse_suna_data(data_file_path)
     tsal = cast_data[[t_var, s_var, d_var]]
     tsal_interp = interpolate_timeseries(tsal, suna_ts).fillna(0)
     degc = tsal_interp[t_var]
@@ -53,6 +53,7 @@ def suna2nitrate(cal_file_path, data_file_path, cast_data, t_var='t090c', s_var=
     nitrate = ts_corrected_nitrate(t_cal, wavelength, no3, swa, reference, dark_value, degc, psu, data_in, frame_type)
     return pd.DataFrame({
         'nitrate': nitrate,
+        'raw_nitrate': raw_nitrate.values, # FIXME is this correct?
         'temperature': degc,
         'salinity': psu
         }, index=suna_ts)

@@ -99,10 +99,24 @@ def generate_suna_profiles(suna_dir, ctd_dir, serial_number, cal_file='a'):
     for cast, file in cast2file.items():
         suna_path = os.path.join(suna_dir, file)
         cast_data = casts_data[cast].copy()
-        nit = suna2nitrate(cal_path, suna_path, cast_data)
+        nit = suna2nitrate(cal_path, suna_path, cast_data) # do the ts correction
         nit = nit.loc[~nit.index.duplicated(keep='first')]
         nit = nit[(nit.index >= cast_data.date.min()) & (nit.index <= cast_data.date.max())]
         it = interpolate_timeseries(nit, cast_data.date)
         cast_data['suna_nitrate'] = it.nitrate.values
+        cast_data['raw_nitrate'] = it.raw_nitrate.values
         suna_casts[cast] = cast_data.dropna(subset=['suna_nitrate'])
     return suna_casts
+
+def output_suna_profiles(suna_casts, out_dir, filename_prefix):
+    assert os.path.exists(out_dir)
+    for cast_number, full_cast in suna_casts.items():
+        outpath_prefix = '{}_cast{:03d}'.format(filename_prefix, cast_number)
+        upcast = full_cast[full_cast.index >= full_cast.depsm.idxmax()]
+        downcast = full_cast[full_cast.index < full_cast.depsm.idxmax()]
+        fc_path = os.path.join(out_dir, '{}.csv'.format(outpath_prefix))
+        uc_path = os.path.join(out_dir, '{}u.csv'.format(outpath_prefix))
+        dc_path = os.path.join(out_dir, '{}d.csv'.format(outpath_prefix))
+        full_cast.to_csv(fc_path, index=None)
+        upcast.to_csv(uc_path, index=None)
+        downcast.to_csv(dc_path, index=None)
