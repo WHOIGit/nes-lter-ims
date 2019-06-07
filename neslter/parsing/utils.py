@@ -2,6 +2,8 @@ import re
 import os
 import json
 
+from datetime import datetime, timedelta
+
 import numpy as np
 import pandas as pd
 
@@ -89,6 +91,20 @@ def date_time_to_datetime(date, time):
         # for a single date/time
         return pd.to_timedelta(time) + pd.to_datetime(date, utc=True)
 
+def datetime_to_datenum(dt):
+    # convert datetime to MATLAB datenum
+    mdn = dt + timedelta(days = 366)
+    fnord = pd.Timestamp(dt.year,dt.month,dt.day,0,0,0).tz_localize('UTC')
+    frac_seconds = (dt-fnord).seconds / (24.0 * 60.0 * 60.0)
+    frac_microseconds = dt.microsecond / (24.0 * 60.0 * 60.0 * 1000000.0)
+    return mdn.toordinal() + frac_seconds + frac_microseconds
+
+def datenum_to_datetime(datenum):
+    days = datenum % 1
+    return pd.to_datetime(datetime.fromordinal(int(datenum)) \
+           + timedelta(days=days) \
+           - timedelta(days=366))
+
 def format_floats(floats, precision=3, nan_string='NaN'):
     """convert an iterable of floating point numbers to
     formatted, fixed-precision strings"""
@@ -143,11 +159,11 @@ def update_cell(df, ix, col, new_value):
     df.at[ix, col] = new_value
     return df
 
-def interpolate_timeseries(data, new_timebase):
+def interpolate_timeseries(data, new_timebase, interpolation='linear'):
     """data should be time-indexed, new_timebase should be a series-like list of datetimes.
     both must be sorted"""
-    idx = data.index.union(new_timebase)
-    interped = data.reindex(idx).interpolate().reindex(new_timebase)
+    idx = data.index.union(new_timebase).drop_duplicates()
+    interped = data.reindex(idx).interpolate(interpolation).reindex(new_timebase)
     return interped
 
 def wide_to_long(df, wide_cols_list, value_cols, long_col, long_labels):

@@ -23,6 +23,7 @@ CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar\d\d[a-c]?)(\d\d\d)\.', # Armstrong 24b/c, 28
     r'(EN\d+).*[Cc]ast(\d+b?)(?:_\w+)?\.', # Endeavor 608, 617
     r'(EN\d+).*(\d{3})\.', # Endeavor 627
+    r'(RB\d+)-(\d{3})\.', # Ron Brown
 ]
 
 def pathname2cruise_cast(pathname, skip_bad_filenames=True):
@@ -74,6 +75,7 @@ class TextParser(object):
 class CtdTextParser(TextParser):
     """parent class of BtlFile and HdrFile"""
     def __init__(self, path, parse_filename=True, **kw):
+        self.path = path
         self._parse_filename = parse_filename
         super(CtdTextParser, self).__init__(path, **kw)
     def parse(self):

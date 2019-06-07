@@ -23,10 +23,14 @@ The required information:
 * Sosik lab nutrient data
 """
 
-def prepare_cast_data(asc_path, hdr_path):
-    assert os.path.exists(asc_path)
+def prepare_cast_data(asc_path_or_cast_data, hdr_path):
     assert os.path.exists(hdr_path)
-    cast = parse_asc(asc_path)
+    try:
+        _ = asc_path_or_cast_data.columns
+        cast = asc_path_or_cast_data
+    except AttributeError:
+        assert os.path.exists(asc_path_or_cast_data)
+        cast_data = parse_asc(asc_path_or_cast_data)
     assert 'times' in cast.columns
     hf = HdrFile(hdr_path)
     times = hf.time + pd.to_timedelta(cast.times, unit='s')

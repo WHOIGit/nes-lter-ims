@@ -22,17 +22,32 @@ def parse_suna_cal(cal_file_path):
 
     return t_cal, df.wavelength, df.no3, df.swa, df.reference
 
-def parse_suna_data(data_file_path):
+def parse_suna_csv(data_file_path):
     df = pd.read_csv(data_file_path, skiprows=3, comment='#')
     df = clean_column_names(df)
+
+    # parse timestamps
+    df.date_utc_00_00 = df.date_utc_00_00.astype(str)
+    date_formats = ['%Y%j', None]
+    for date_format in date_formats:
+        try:
+            timestamp = pd.to_datetime(df.date_utc_00_00, format=date_format, infer_datetime_format=True, utc=True) + \
+                pd.to_timedelta(df.time_utc_00_00, unit='h')
+            break
+        except ValueError:
+            pass
+
+    df['timestamp'] = timestamp
+
+    return df
+
+def parse_suna_data(data_file_path):
+    df = parse_suna_csv(data_file_path)
 
     # ignore dark frames
     df = df[~(df.dark_avg == 0)] # ignore dark frames
 
-    # parse timestamps
-    df.date_utc_00_00 = df.date_utc_00_00.astype(str)
-    timestamp = pd.to_datetime(df.date_utc_00_00, format='%Y%j', utc=True) + \
-        pd.to_timedelta(df.time_utc_00_00, unit='h')
+    timestamp = df.timestamp
 
     # format parameters for ts_corrected_nitrate
 
