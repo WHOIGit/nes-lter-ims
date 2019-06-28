@@ -3,7 +3,7 @@ import re
 
 import pandas as pd
 
-from neslter.parsing.suna import parse_suna_data, parse_suna_csv
+from neslter.parsing.suna import parse_suna_data, parse_suna_csv, ENG_COLUMNS
 from neslter.parsing.ctd.asc import list_casts, parse_cast
 from neslter.parsing.ctd.hdr import compile_hdr_files
 from neslter.analysis.suna.nut_matchups import suna2nitrate
@@ -89,14 +89,16 @@ def generate_suna_profiles(suna_dir, ctd_dir, serial_number, cal_file='a'):
     print('parsing suna data ...')
     for path in list_suna_files(suna_dir, serial_number):
         fn = os.path.basename(path)
+        print('\r{}'.format(fn),end='',flush=True)
         raw_suna_data[fn] = parse_suna_csv(path)
     # map cast numbers to suna filenames
     suna_se = suna_start_end(raw_suna_data)
     cast2file = cast2suna_file(suna_se, cast_se)
     # compute ts_corrected profile
-    print('applying temperature and salinity correction...')
+    print('\napplying temperature and salinity correction...')
     suna_casts = {}
     for cast, file in cast2file.items():
+        print('\rcast {}...'.format(cast),end='',flush=True)
         suna_path = os.path.join(suna_dir, file)
         cast_data = casts_data[cast].copy()
         nit = suna2nitrate(cal_path, suna_path, cast_data) # do the ts correction
@@ -105,12 +107,17 @@ def generate_suna_profiles(suna_dir, ctd_dir, serial_number, cal_file='a'):
         it = interpolate_timeseries(nit, cast_data.date)
         cast_data['suna_nitrate'] = it.nitrate.values
         cast_data['raw_nitrate'] = it.raw_nitrate.values
+        for ec in ENG_COLUMNS:
+            cast_data[ec] = it[ec].values
         suna_casts[cast] = cast_data.dropna(subset=['suna_nitrate'])
+    print('\nDone')
     return suna_casts
 
 def output_suna_profiles(suna_casts, out_dir, filename_prefix):
     assert os.path.exists(out_dir)
     for cast_number, full_cast in suna_casts.items():
+        if len(full_cast) == 0:
+            continue
         outpath_prefix = '{}_cast{:03d}'.format(filename_prefix, cast_number)
         upcast = full_cast[full_cast.index >= full_cast.depsm.idxmax()]
         downcast = full_cast[full_cast.index < full_cast.depsm.idxmax()]

@@ -17,8 +17,6 @@ def parse_suna_cal(cal_file_path):
 
     df = pd.read_csv(StringIO(''.join(data)), header=None)
     df.columns = ['ignore','wavelength','no3','swa','tswa','reference']
-    df.pop('ignore')
-    df.pop('tswa')
 
     return t_cal, df.wavelength, df.no3, df.swa, df.reference
 
@@ -40,6 +38,8 @@ def parse_suna_csv(data_file_path):
     df['timestamp'] = timestamp
 
     return df
+
+ENG_COLUMNS = ['t_int', 't_spec', 't_lamp', 'lamp_time', 'humidity', 'volt_main', 'volt_12', 'volt_5', 'current']
 
 def parse_suna_data(data_file_path):
     df = parse_suna_csv(data_file_path)
@@ -64,4 +64,7 @@ def parse_suna_data(data_file_path):
     data_df = df[data_df_columns]
     data_in = data_df.to_numpy()
 
-    return timestamp, dark_value, frame_type, data_in, raw_nitrate
+    # engineering data
+    eng = df[ENG_COLUMNS]
+
+    return timestamp, dark_value, frame_type, data_in, raw_nitrate, eng
