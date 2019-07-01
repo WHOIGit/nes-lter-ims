@@ -43,6 +43,7 @@ def parse_casts(ctd_dir):
         cast_start = pd.to_datetime(md[md.cast == cast].date.iloc[0], utc=True)
         timestamp = cast_start + pd.to_timedelta(cast_data['times'], unit='s')
         cast_data['date'] = timestamp
+        cast_data.set_index(timestamp)
         casts[cast] = cast_data
     return md, casts
     
@@ -104,12 +105,19 @@ def generate_suna_profiles(suna_dir, ctd_dir, serial_number, cal_file='a'):
         nit = suna2nitrate(cal_path, suna_path, cast_data) # do the ts correction
         nit = nit.loc[~nit.index.duplicated(keep='first')]
         nit = nit[(nit.index >= cast_data.date.min()) & (nit.index <= cast_data.date.max())]
-        it = interpolate_timeseries(nit, cast_data.date)
-        cast_data['suna_nitrate'] = it.nitrate.values
-        cast_data['raw_nitrate'] = it.raw_nitrate.values
+        #it = interpolate_timeseries(nit, cast_data.date)
+        #cast_data['suna_nitrate'] = it.nitrate.values
+        #cast_data['raw_nitrate'] = it.raw_nitrate.values
+        #for ec in ENG_COLUMNS:
+        #    cast_data[ec] = it[ec].values
+        #suna_casts[cast] = cast_data.dropna(subset=['suna_nitrate'])
+        cast_data.set_index(cast_data.date, inplace=True)
+        cd = interpolate_timeseries(cast_data, nit.index, interpolation='ffill')
+        cd['suna_nitrate'] = nit.nitrate.values
+        cd['raw_nitrate'] = nit.raw_nitrate.values
         for ec in ENG_COLUMNS:
-            cast_data[ec] = it[ec].values
-        suna_casts[cast] = cast_data.dropna(subset=['suna_nitrate'])
+            cd[ec] = nit[ec].values
+        suna_casts[cast] = cd.dropna()
     print('\nDone')
     return suna_casts
 
