@@ -213,19 +213,17 @@ def parse_btl(in_path, add_depth=True, add_lat_lon=True):
 
 def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True, summary=False):
     """convert a set of bottle files to a single dataframe"""
-    compiled_df = None
+    dfs = []
     for path in find_btl_files(in_dir):
         cr, ca = pathname2cruise_cast(path, skip_bad_filenames=True)
         if cr is None:
             warnings.warn('cannot parse cruise and cast from "{}"'.format(path))
             continue
         df = parse_btl(path, add_depth=add_depth, add_lat_lon=add_lat_lon)
-        if compiled_df is None:
-            compiled_df = df
-        else:
-            compiled_df = compiled_df.append(df)
-        compiled_df = compiled_df.sort_values(['cast','niskin'])
-        compiled_df.index = range(len(compiled_df))
+        dfs.append(df)
+    compiled_df = pd.concat(dfs, sort=False)
+    compiled_df = compiled_df.sort_values(['cast','niskin'])
+    compiled_df.reset_index()
     if summary:
         return summarize_compiled_btl_files(compiled_df)
     else:
