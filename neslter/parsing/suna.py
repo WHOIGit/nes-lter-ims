@@ -17,22 +17,39 @@ def parse_suna_cal(cal_file_path):
 
     df = pd.read_csv(StringIO(''.join(data)), header=None)
     df.columns = ['ignore','wavelength','no3','swa','tswa','reference']
-    df.pop('ignore')
-    df.pop('tswa')
 
     return t_cal, df.wavelength, df.no3, df.swa, df.reference
 
-def parse_suna_data(data_file_path):
+def parse_suna_csv(data_file_path):
     df = pd.read_csv(data_file_path, skiprows=3, comment='#')
     df = clean_column_names(df)
+
+    # parse timestamps
+    df.date_utc_00_00 = df.date_utc_00_00.astype(str)
+    date_formats = ['%Y%j', None]
+    for date_format in date_formats:
+        try:
+            timestamp = pd.to_datetime(df.date_utc_00_00, format=date_format, infer_datetime_format=True, utc=True) + \
+                pd.to_timedelta(df.time_utc_00_00, unit='h')
+            break
+        except ValueError:
+            pass
+
+    df['timestamp'] = timestamp
+
+    return df
+
+ENG_COLUMNS = ['t_int', 't_spec', 't_lamp', 'lamp_time', 'humidity', 'volt_main', 'volt_12', 'volt_5', 'current']
+
+def parse_suna_data(data_file_path):
+    df = parse_suna_csv(data_file_path)
+
 
     # ignore dark frames
     df = df[~(df.dark_avg == 0)] # ignore dark frames
 
-    # parse timestamps
-    df.date_utc_00_00 = df.date_utc_00_00.astype(str)
-    timestamp = pd.to_datetime(df.date_utc_00_00, format='%Y%j', utc=True) + \
-        pd.to_timedelta(df.time_utc_00_00, unit='h')
+    timestamp = df.timestamp
+    raw_nitrate = df.nitrate_um
 
     # format parameters for ts_corrected_nitrate
 
@@ -47,4 +64,7 @@ def parse_suna_data(data_file_path):
     data_df = df[data_df_columns]
     data_in = data_df.to_numpy()
 
-    return timestamp, dark_value, frame_type, data_in
+    # engineering data
+    eng = df[ENG_COLUMNS]
+
+    return timestamp, dark_value, frame_type, data_in, raw_nitrate, eng

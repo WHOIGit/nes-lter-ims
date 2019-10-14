@@ -30,16 +30,31 @@ def parse_asc_fwf(asc_path):
     df = pd.read_fwf(asc_path, widths=col_widths, encoding='latin-1')
     return df
 
-def parse_asc(asc_path, delimiter=';'):
+def parse_asc(asc_path, delimiter=','):
     # duck type to see if this is CSV or fixed-width
     df = parse_asc_csv(asc_path, delimiter)
-    if len(df.columns) == 1: # almost certainly a fixed-width file
+    if len(df.columns) == 1: # whoops, try a different delimiter
+        if delimiter == ',':
+            delimiter = ';'
+        elif delimiter == ';':
+            delimiter = ','
+        df = parse_asc_csv(asc_path, delimiter)
+    if len(df.columns) == 1: # try fixed-width
         df = parse_asc_fwf(asc_path)
     df = clean_column_names(df)
     return df
 
 def format_asc(df):
     return df.copy()
+
+def list_casts(asc_dir):
+    for p in sorted(glob(os.path.join(asc_dir, '*.asc'))):
+        b = os.path.basename(p)
+        cruise, fcast = pathname2cruise_cast(b)
+        if cruise is None or fcast is None:
+            continue
+        cast = int(fcast)
+        yield (cruise, cast)
 
 def parse_cast(asc_dir, cast=1, delimiter=';'):
     for p in sorted(glob(os.path.join(asc_dir, '*.asc'))):

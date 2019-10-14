@@ -23,10 +23,14 @@ The required information:
 * Sosik lab nutrient data
 """
 
-def prepare_cast_data(asc_path, hdr_path):
-    assert os.path.exists(asc_path)
+def prepare_cast_data(asc_path_or_cast_data, hdr_path):
     assert os.path.exists(hdr_path)
-    cast = parse_asc(asc_path)
+    try:
+        _ = asc_path_or_cast_data.columns
+        cast = asc_path_or_cast_data
+    except AttributeError:
+        assert os.path.exists(asc_path_or_cast_data)
+        cast = parse_asc(asc_path_or_cast_data)
     assert 'times' in cast.columns
     hf = HdrFile(hdr_path)
     times = hf.time + pd.to_timedelta(cast.times, unit='s')
@@ -41,17 +45,21 @@ def suna2nitrate(cal_file_path, data_file_path, cast_data, t_var='t090c', s_var=
     assert s_var in cast_data.columns
     # cast data must be indexed by time, see prepare_cast_data
     t_cal, wavelength, no3, swa, reference = parse_suna_cal(cal_file_path)
-    suna_ts, dark_value, frame_type, data_in = parse_suna_data(data_file_path)
+    suna_ts, dark_value, frame_type, data_in, raw_nitrate, eng = parse_suna_data(data_file_path)
     tsal = cast_data[[t_var, s_var, d_var]]
     tsal_interp = interpolate_timeseries(tsal, suna_ts).fillna(0)
     degc = tsal_interp[t_var]
     psu = tsal_interp[s_var]
     nitrate = ts_corrected_nitrate(t_cal, wavelength, no3, swa, reference, dark_value, degc, psu, data_in, frame_type)
-    return pd.DataFrame({
+    out = pd.DataFrame({
         'nitrate': nitrate,
+        'raw_nitrate': raw_nitrate.values, # FIXME is this correct?
         'temperature': degc,
         'salinity': psu
-        }, index=suna_ts)
+    }, index=suna_ts)
+    for ec in eng.columns:
+        out[ec] = eng[ec].values
+    return out
 
 def nutrient_profile(sample_log_path, nut_path, cast_number, cruise='en627'):
     assert os.path.exists(sample_log_path)
