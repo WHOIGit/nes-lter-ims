@@ -26,7 +26,9 @@ class HasLocation(models.Model):
     def longitude(self):
         if self.location is None:
             return None
-        return self.location.x    
+        return self.location.x
+
+# q: define "CruiseGroup"?
 
 class Cruise(models.Model):
     name = models.CharField(max_length=64, unique=True)
@@ -53,7 +55,14 @@ class Sample(models.Model):
     sample_id = models.CharField(max_length=64, null=True)
     volume = models.FloatField(null=True)
     niskins = models.ManyToManyField('Niskin')
+    # attribution
 
 class Station(HasLocation):
     cruise = models.ForeignKey('Cruise', related_name='stations', on_delete=models.CASCADE)
     name = models.CharField(max_length=64)
+
+# need person (PI) model
+# need keywords for stuff like parameters
+# need file descriptions of variables including data type
+# model for term from a vocabulary
+# instrument types
