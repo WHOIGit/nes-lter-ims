@@ -13,3 +13,4 @@ dependencies:
 - psycopg2
 - gdal=2.4.1
 - libiconv=1.15
+- geopy

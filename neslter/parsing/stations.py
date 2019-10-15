@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 import numpy as np
-from scipy.spatial.distance import euclidean
+from geopy.distance import distance as geo_distance
 
 from .files import Resolver
 from .utils import data_table
@@ -70,19 +70,25 @@ class StationLocator(object):
         index = []
         for station in self.station_metadata.itertuples():
             index.append(station.Index)
-            distance = euclidean([lat,lon], [station.latitude, station.longitude])
+            distance = geo_distance([lat,lon], [station.latitude, station.longitude]).km
             distances.append(distance)
         distances = pd.Series(distances, index=index)
         return distances
     def nearest_station(self, df, lat_col='latitude', lon_col='longitude'):
         nearest = []
+        distance = []
         index = []
         for point in df.itertuples():
             index.append(point.Index)
             distances = self.station_distances(getattr(point, lat_col), getattr(point, lon_col))
+            min_distance = distances.min()
             nearest.append(self.station_metadata.loc[distances.idxmin()]['name'])
-        return pd.Series(nearest, index=index)
+            distance.append(min_distance)
+        return pd.DataFrame({
+            'nearest_station': nearest,
+            'distance_km': distance
+        })
     def cast_to_station(self, ctd_metadata):
         df = ctd_metadata.copy()
-        s = self.nearest_station(df)
-        return df.merge(s.rename('nearest_station'), left_index=True, right_index=True)
+        ns = self.nearest_station(df)
+        return df.merge(ns, left_index=True, right_index=True)
