@@ -56,7 +56,7 @@ def parse_chl(chl_xl_path):
         df.loc[freeze, c] = np.nan
         # deal with whitespace-only time columns
         regex = re.compile(r'^ +$')
-        df[c] = pd.to_datetime(df[c].str.replace(regex,'',regex=True))
+        df[c] = pd.to_datetime(df[c].astype(str).str.replace(regex,'',regex=True))
     df.filter_size = df.filter_size.astype(str)
     def fms_replace(value, replacement):
         df.filter_size = df.filter_size.replace(value, replacement)
