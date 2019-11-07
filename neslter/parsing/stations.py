@@ -87,7 +87,7 @@ class StationLocator(object):
         return pd.DataFrame({
             'nearest_station': nearest,
             'distance_km': distance
-        })
+        }, index=index)
     def cast_to_station(self, ctd_metadata):
         df = ctd_metadata.copy()
         ns = self.nearest_station(df)
