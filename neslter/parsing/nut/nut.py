@@ -40,6 +40,15 @@ def format_nut(df):
     prec = { c: 3 for c in NUT_COLS }
     return format_dataframe(df, precision=prec)
 
+def fix_ooi_nut_replicates(df):
+    # specifically deal with case where OOI took replicates
+    # and the OOI nut ID column looks like '6-1/6-2'
+    rep_a = df[df.replicate == 'a']
+    rep_b = df[df.replicate == 'b']
+    rep_a['ooi_nut_id'] = rep_a['ooi_nut_id'].str.replace(r'/.*','')
+    rep_b['ooi_nut_id'] = rep_b['ooi_nut_id'].str.replace(r'.*/','')
+    return pd.concat([rep_a, rep_b])
+
 def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     assert os.path.exists(sample_log_path)
     assert os.path.exists(nut_path)
@@ -60,7 +69,7 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     df['niskin'] = df['niskin'].fillna('0').str.replace(',.*','',regex=True).astype(int)
     df['Comments'] = df.comments.fillna('')
     # drop rows without an a replicate
-    df = df[['cruise','cast','niskin','nut_a','nut_b']].dropna(subset=['nut_a'])
+    df = df[['cruise','cast','niskin','nut_a','nut_b', 'ooi_nut_id']].dropna(subset=['nut_a'])
     df = df[df['cruise'] == cruise.upper()]
     # make replicates long instead of wide
     sample_ids = wide_to_long(df, [['nut_a'],['nut_b']], ['sample_id'], 'replicate', ['a','b'])
@@ -76,4 +85,8 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     nit['sample_id'] = nit.pop('lter_sample_id').astype(str)
     nut_profile = merged.merge(nit, on='sample_id')
     nut_profile['date'] = pd.to_datetime(nut_profile['date'], utc=True)
-    return nut_profile.sort_values(['cast','niskin','replicate'])
+    nut_profile = fix_ooi_nut_replicates(nut_profile)
+    nut_profile = nut_profile.sort_values(['cast','niskin','replicate'])
+    nut_profile['alternate_sample_id'] = nut_profile.pop('ooi_nut_id')
+    nut_profile['project_id'] = np.where(nut_profile['alternate_sample_id'].isna(), 'LTER', 'OOI')
+    return nut_profile
