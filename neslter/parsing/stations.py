@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 import numpy as np
-from scipy.spatial.distance import euclidean
+from geopy.distance import distance as geo_distance
 
 from .files import Resolver
 from .utils import data_table
@@ -29,22 +29,37 @@ class Stations(object):
         # some 'stations' are just waypoints where there won't be a cast
         if exclude_waypoints:
             df = df[~df['comments'].str.contains('waypoint only')]
+        def parse_lon(lon):
+            l = parse_ll(lon)
+            if l > 0:
+                return 0 - l
+            return l
         def parse_ll(ll):
-            """Parse a lat or lon in dec minutes e.g., 40° 32.5'
-            does not parse any N/S/E/W indication"""
+            """Parse lat or lon. First checks if decimal degrees,
+            Otherwise parse a lat or lon in dec minutes e.g., 40° 32.5'"""
+            try:
+                return float(ll)
+            except ValueError:
+                pass
+            lon_west = 'W' in ll
+            lat_south = 'S' in ll
             ll = re.sub(r'[^\d. ]','',ll).lstrip()
             deg, min = re.split(r'\s+',ll)
             deg = int(deg)
             frac = float(min) / 60
-            return round(deg + frac, 4)
+            l = round(deg + frac, 4)
+            if lon_west or lat_south:
+                return 0 - l
+            else:
+                return l
         def parse_depth(d):
             """removes 'm' from depth and parses as float"""
             if pd.isnull(d):
                 return np.nan
             return float(re.sub(r'\s*m','',d))
         # compute derived fields
-        df['dec_lat'] = df['latitude'].map(parse_ll, na_action='ignore') # N
-        df['dec_lon'] = 0 - df['longitude'].map(parse_ll, na_action='ignore') # W
+        df['dec_lat'] = df['latitude'].map(parse_ll, na_action='ignore')
+        df['dec_lon'] = df['longitude'].map(parse_lon, na_action='ignore')
         df['depth_m'] = df['depth'].map(parse_depth)
         return df
     def to_dataframe(self, exclude_waypoints=True):
@@ -70,19 +85,25 @@ class StationLocator(object):
         index = []
         for station in self.station_metadata.itertuples():
             index.append(station.Index)
-            distance = euclidean([lat,lon], [station.latitude, station.longitude])
+            distance = geo_distance([lat,lon], [station.latitude, station.longitude]).km
             distances.append(distance)
         distances = pd.Series(distances, index=index)
         return distances
     def nearest_station(self, df, lat_col='latitude', lon_col='longitude'):
         nearest = []
+        distance = []
         index = []
         for point in df.itertuples():
             index.append(point.Index)
             distances = self.station_distances(getattr(point, lat_col), getattr(point, lon_col))
+            min_distance = distances.min()
             nearest.append(self.station_metadata.loc[distances.idxmin()]['name'])
-        return pd.Series(nearest, index=index)
+            distance.append(min_distance)
+        return pd.DataFrame({
+            'nearest_station': nearest,
+            'distance_km': distance
+        }, index=index)
     def cast_to_station(self, ctd_metadata):
         df = ctd_metadata.copy()
-        s = self.nearest_station(df)
-        return df.merge(s.rename('nearest_station'), left_index=True, right_index=True)
+        ns = self.nearest_station(df)
+        return df.merge(ns, left_index=True, right_index=True)
