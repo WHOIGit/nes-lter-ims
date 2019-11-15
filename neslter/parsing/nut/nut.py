@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from ..utils import clean_column_names, dropna_except, format_dataframe, wide_to_long
+from ..cruises import JP_STUDENT_CRUISES
 
 RAW_COLS = ['Nutrient \nNumber', 'Cruise', 'Cast', 'LTER \nSample ID', 'Nitrate + Nitrite', 'Ammonium',
        'Phosphate', 'Silicate', 'Comments']
@@ -88,5 +89,8 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     nut_profile = fix_ooi_nut_replicates(nut_profile)
     nut_profile = nut_profile.sort_values(['cast','niskin','replicate'])
     nut_profile['alternate_sample_id'] = nut_profile.pop('ooi_nut_id')
-    nut_profile['project_id'] = np.where(nut_profile['alternate_sample_id'].isna(), 'LTER', 'OOI')
+    if cruise.lower() in JP_STUDENT_CRUISES:
+        nut_profile['project_id'] = 'JP'
+    else:
+        nut_profile['project_id'] = np.where(nut_profile['alternate_sample_id'].isna(), 'LTER', 'OOI')
     return nut_profile
