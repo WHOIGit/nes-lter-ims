@@ -73,6 +73,15 @@ def subset_chl(parsed_chl):
         'chl','phaeo']
     return parsed_chl[cols]
 
+def merge_bottle_summary(chl, bottle_summary):
+    chl = chl.copy()
+    bottle_summary = bottle_summary.copy()
+    chl.cast = chl.cast.astype(str)
+    chl.niskin = chl.niskin.astype(str)
+    bottle_summary.cast = bottle_summary.cast.astype(str)
+    bottle_summary.niskin = bottle_summary.niskin.astype(str)
+    return chl.merge(bottle_summary, on=['cruise','cast','niskin'])
+
 def parse_ryn_chl(chl_xl_path):
     # read Excel file
     df = pd.read_excel(chl_xl_path, dtype = {
