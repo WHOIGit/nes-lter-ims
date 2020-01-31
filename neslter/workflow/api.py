@@ -7,6 +7,12 @@ from neslter.parsing.files import Resolver, find_file
 def read_product_csv(path):
     """file must exist and be a CSV file"""
     df = pd.read_csv(path, index_col=None, encoding='utf-8')
+    for c in df.columns:
+        if c.lower() in ['date', 'datetime', 'datetime8601']: # FIXME kludgy
+            try:
+                df[c] = pd.to_datetime(df[c], utc=True)
+            except: # not really dates
+                pass
     return df
 
 class Workflow(object):
