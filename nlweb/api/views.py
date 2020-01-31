@@ -40,7 +40,7 @@ def dataframe_response(df, filename, extension='json'):
         return response
     elif extension == 'mat':
         bio = BytesIO()
-        df_to_mat(df, bio, convert_dates=['date'])
+        df_to_mat(df, bio, convert_dates=True)
         mat_data = bio.getvalue()
         response = HttpResponse(mat_data, content_type='application/octet-stream')
         if filename is not None:
