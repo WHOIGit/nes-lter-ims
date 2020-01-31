@@ -1,4 +1,4 @@
-from io import StringIO
+from io import StringIO, BytesIO
 
 from django.shortcuts import render
 
@@ -18,6 +18,12 @@ from neslter.workflow.underway import UnderwayWorkflow
 from neslter.workflow.nut import NutPlusBottlesWorkflow
 from neslter.workflow.chl import ChlWorkflow
 
+from .utils import df_to_mat
+
+def as_attachment(response, filename):
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    return response
+
 def dataframe_response(df, filename, extension='json'):
     if extension is None:
         extension = 'json'
@@ -27,11 +33,20 @@ def dataframe_response(df, filename, extension='json'):
         sio = StringIO()
         df.to_csv(sio, index=None, encoding='utf-8')
         csv = sio.getvalue()
-        resp = HttpResponse(csv, content_type='text/csv')
+        response = HttpResponse(csv, content_type='text/csv')
         if filename is not None:
             csv_filename = '{}.csv'.format(filename)
-            resp['Content-Disposition'] = 'attachment; filename="{}"'.format(csv_filename)
-        return resp
+            response = as_attachment(response, csv_filename)
+        return response
+    elif extension == 'mat':
+        bio = BytesIO()
+        df_to_mat(df, bio, convert_dates=['date'])
+        mat_data = bio.getvalue()
+        response = HttpResponse(mat_data, content_type='application/octet-stream')
+        if filename is not None:
+            mat_filename = '{}.mat'.format(filename)
+            response = as_attachment(response, mat_filename)
+        return response
     else:
         raise Http404('unsupported file type .{}'.format(extension))   
 
