@@ -4,16 +4,9 @@ import pandas as pd
 
 from neslter.parsing.files import Resolver, find_file 
 
-def read_product_csv(path, coerce_dates=True):
+def read_product_csv(path):
     """file must exist and be a CSV file"""
     df = pd.read_csv(path, index_col=None, encoding='utf-8')
-    if coerce_dates:
-        for c in df.columns:
-            try:
-                dts = pd.to_datetime(df[c], utc=True)
-                df[c] = dts
-            except ValueError:
-                pass
     return df
 
 class Workflow(object):
