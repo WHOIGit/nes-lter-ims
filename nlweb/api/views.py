@@ -62,63 +62,51 @@ def workflow_response(workflow, extension=None):
     #    raise Http404('data not found')
     return dataframe_response(df, filename, extension)
 
-class CruisesView(View):
-    """list cruises. JSON only"""
-    def get(self, request):
-        cruises = Resolver().cruises()
-        return JsonResponse({ 'cruises': cruises })
+def cruises(request):
+    cruises = Resolver().cruises()
+    return JsonResponse({ 'cruises': cruises })
 
-class CtdCastsView(View):
-    def get(self, request, cruise): # JSON only
-        wf = CtdMetadataWorkflow(cruise)
-        try:
-            md = wf.get_product()
-        except KeyError:
-            raise Http404()
-        casts = [int(i) for i in sorted(md['cast'].unique())]
-        return JsonResponse({'casts': casts})
+def ctd_casts(request, cruise):
+    wf = CtdMetadataWorkflow(cruise)
+    try:
+        md = wf.get_product()
+    except KeyError:
+        raise Http404()
+    casts = [int(i) for i in sorted(md['cast'].unique())]
+    return JsonResponse({'casts': casts})
 
-class CtdMetadataView(View):
-    def get(self, request, cruise, extension=None):
-        wf = CtdMetadataWorkflow(cruise)
-        return workflow_response(wf, extension)
+def ctd_metadata(request, cruise, extension=None):
+    wf = CtdMetadataWorkflow(cruise)
+    return workflow_response(wf, extension)
 
-class CtdBottlesView(View):
-    def get(self, request, cruise, extension=None):
-        wf = CtdBottlesWorkflow(cruise)
-        return workflow_response(wf, extension)
+def ctd_bottles(request, cruise, extension=None):
+    wf = CtdBottlesWorkflow(cruise)
+    return workflow_response(wf, extension)
 
-class CtdBottleSummaryView(View):
-    def get(self, request, cruise, extension=None):
-        wf = CtdBottleSummaryWorkflow(cruise)
-        return workflow_response(wf, extension)
+def ctd_bottle_summary(request, cruise, extension=None):
+    wf = CtdBottleSummaryWorkflow(cruise)
+    return workflow_response(wf, extension)
 
-class CtdCastView(View):
-    def get(self, request, cruise, cast, extension=None):
-        wf = CtdCastWorkflow(cruise, cast)
-        return workflow_response(wf, extension)
+def ctd_cast(request, cruise, cast, extension=None):
+    wf = CtdCastWorkflow(cruise, cast)
+    return workflow_response(wf, extension)
 
-class UnderwayView(View):
-    def get(self, request, cruise, extension=None):
-        wf = UnderwayWorkflow(cruise)
-        return workflow_response(wf, extension)
+def underway(request, cruise, extension=None):
+    wf = UnderwayWorkflow(cruise)
+    return workflow_response(wf, extension)
 
-class EventLogView(View):
-    def get(self, request, cruise, extension=None):
-        wf = EventLogWorkflow(cruise)
-        return workflow_response(wf, extension)
+def event_log(request, cruise, extension=None):
+    wf = EventLogWorkflow(cruise)
+    return workflow_response(wf, extension)
 
-class StationsView(View):
-    def get(self, request, cruise, extension=None):
-        wf = StationsWorkflow(cruise)
-        return workflow_response(wf, extension)
+def stations(request, cruise, extension=None):
+    wf = StationsWorkflow(cruise)
+    return workflow_response(wf, extension)
 
-class NutPlusBottlesView(View):
-    def get(self, request, cruise, extension=None):
-        wf = NutPlusBottlesWorkflow(cruise)
-        return workflow_response(wf, extension)
+def nut_plus_bottles(request, cruise, extension=None):
+    wf = NutPlusBottlesWorkflow(cruise)
+    return workflow_response(wf, extension)
 
-class ChlView(View):
-    def get(self, request, cruise, extension=None):
-        wf = ChlWorkflow(cruise)
-        return workflow_response(wf, extension)
+def chl(request, cruise, extension=None):
+    wf = ChlWorkflow(cruise)
+    return workflow_response(wf, extension)
