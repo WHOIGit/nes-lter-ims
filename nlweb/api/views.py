@@ -17,6 +17,7 @@ from neslter.workflow.elog import EventLogWorkflow
 from neslter.workflow.underway import UnderwayWorkflow
 from neslter.workflow.nut import NutPlusBottlesWorkflow
 from neslter.workflow.chl import ChlWorkflow
+from neslter.workflow.hplc import HplcWorkflow
 
 from .utils import df_to_mat
 
@@ -109,4 +110,8 @@ def nut_plus_bottles(request, cruise, extension=None):
 
 def chl(request, cruise, extension=None):
     wf = ChlWorkflow(cruise)
+    return workflow_response(wf, extension)
+
+def hplc(request, cruise, extension=None):
+    wf = HplcWorkflow(cruise)
     return workflow_response(wf, extension)

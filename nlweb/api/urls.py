@@ -30,7 +30,10 @@ urlpatterns = [
 
     path('nut/<cruise>.<extension>', views.nut_plus_bottles, name='nut'),
     path('nut/<cruise>', views.nut_plus_bottles, name='nut_json'),
-    
+
     path('chl/<cruise>.<extension>', views.chl, name='chl'),
     path('chl/<cruise>', views.chl, name='chl_json'),
+
+    path('hplc/<cruise>.<extension>', views.hplc, name='hplc'),
+    path('hplc/<cruise>', views.hplc, name='hplc_json'),
 ]
