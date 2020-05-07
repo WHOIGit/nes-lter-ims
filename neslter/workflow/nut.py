@@ -7,6 +7,8 @@ from neslter.parsing.nut import merge_nut_bottles
 
 from neslter.workflow.ctd import CtdBottleSummaryWorkflow
 
+from .stations import add_nearest_station
+
 NUT='nut'
 
 class NutPlusBottlesWorkflow(Workflow):
@@ -21,4 +23,5 @@ class NutPlusBottlesWorkflow(Workflow):
         nut_path = Resolver().raw_file(NUT, 'LTERnut.xlsx')
         parent_dir = os.path.dirname(os.path.dirname(nut_path)) # ..
         sample_log_path = os.path.join(parent_dir, 'LTER_sample_log.xls')
-        return merge_nut_bottles(sample_log_path, nut_path, bottle_summary, self.cruise)
+        merged = merge_nut_bottles(sample_log_path, nut_path, bottle_summary, self.cruise)
+        return add_nearest_station(self.cruise, merged)

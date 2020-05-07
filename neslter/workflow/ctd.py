@@ -8,7 +8,7 @@ from neslter.parsing.ctd import Ctd
 
 from .stations import StationsWorkflow
 
-from neslter.parsing.stations import Stations, StationLocator
+from neslter.workflow.stations import add_nearest_station
 
 CTD = 'ctd'
 
@@ -57,13 +57,4 @@ class CtdMetadataWorkflow(CtdWorkflow):
         return '{}_ctd_metadata'.format(self.cruise)
     def produce_product(self):
         md = Ctd(self.cruise).metadata()
-        # now add nearest_station
-        st_wf = StationsWorkflow(self.cruise)
-        try:
-            smd = st_wf.get_product()
-            station_locator = StationLocator(smd)
-            md = station_locator.cast_to_station(md)
-        except KeyError:
-            # no station metadata. That's OK
-            pass
-        return md
+        return add_nearest_station(self.cruise, md)
