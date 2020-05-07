@@ -186,4 +186,6 @@ def parse_hplc(hplc_dir):
     dfs = []
     for report_path in hplc_report_paths(hplc_dir):
         dfs.append(parse_report(report_path))
-    return pd.concat(dfs)
+    result = pd.concat(dfs)
+    result = result.replace(-8888,0)
+    return result
