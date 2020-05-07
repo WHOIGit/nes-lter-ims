@@ -43,7 +43,7 @@ class Stations(object):
                 pass
             lon_west = 'W' in ll
             lat_south = 'S' in ll
-            ll = re.sub(r'[^\d. ]','',ll).lstrip()
+            ll = re.sub(r'[^\d. ]','',ll).strip()
             deg, min = re.split(r'\s+',ll)
             deg = int(deg)
             frac = float(min) / 60
