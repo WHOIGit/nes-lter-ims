@@ -15,12 +15,14 @@ class Resolver(object):
         if data_root is None:
             data_root = DATA_ROOT
         self.data_root = data_root
-    def raw_directory(self, data_type, cruise=ALL, check_exists=True):
+    def raw_directory(self, data_type=None, cruise=ALL, check_exists=True):
+        if data_type is None:
+            data_type = ''
         raw_dir = os.path.join(self.data_root, RAW, cruise, data_type)
         if check_exists and not os.path.exists(raw_dir):
             raise KeyError('{} directory not found for {}'.format(data_type, cruise))
         return raw_dir
-    def raw_file(self, data_type, name=None, check_exists=True, **kw):
+    def raw_file(self, data_type=None, name=None, check_exists=True, **kw):
         if name is None: # using None so name can be used as a keyword
             raise ValueError('file name must be provided')
         raw_dir = self.raw_directory(data_type, **kw)

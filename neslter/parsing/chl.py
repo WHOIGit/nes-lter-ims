@@ -4,6 +4,8 @@ import re
 
 from .utils import dropna_except, clean_column_names, cast_columns, float_to_datetime, format_dataframe
 
+from .cruises import JP_STUDENT_CRUISES
+
 """Parsing chlorophyll Excel spreadsheet"""
 
 def parse_chl(chl_xl_path):
@@ -64,13 +66,18 @@ def parse_chl(chl_xl_path):
     fms_replace('10','<10') # we know < a priori
     fms_replace('5','>5') # we know > a priori
     fms_replace('20','>20') # we know > a priori
+    # merge comments fields
+    df['comments'] = df['comments'] + ' ' + df['comments2']
     return df
+
+def merge_project_info(chl, sample_log):
+    chl['project_id'] = np.where(chl['cruise'].str.lower().isin(JP_STUDENT_CRUISES), 'JP', 'LTER')
+    chl['alternate_sample_id'] = np.nan # FIXME placeholder
+    return chl
 
 def subset_chl(parsed_chl):
     cols = ['cruise','cast','niskin','replicate','vol_filtered','filter_size',
-        'tau_calibration','fd_calibration',
-        'rb','ra','blank','rb_blank','ra_blank',
-        'chl','phaeo']
+        'chl','phaeo','project_id','alternate_sample_id','quality_flag','comments']
     return parsed_chl[cols]
 
 def merge_bottle_summary(chl, bottle_summary):
@@ -105,10 +112,3 @@ def parse_ryn_chl(chl_xl_path):
     # drop nas
     ryn_chl_clean = dropna_except(ryn_chl, ['comments'])
     return ryn_chl_clean
-
-def format_chl(df):
-    """format parsed chl spreadsheet"""
-    return format_dataframe(df, precision={
-        'ra': 2,
-        'rb': 2,
-        })
