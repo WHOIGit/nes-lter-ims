@@ -7,5 +7,5 @@ jinja2
 django
 numexpr
 psycopg2
-gdal==2.4.1
+gdal
 geopy
