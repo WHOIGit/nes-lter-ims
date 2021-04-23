@@ -23,7 +23,7 @@ class Stations(object):
         self.cruise = cruise
     def station_metadata(self, exclude_waypoints=True):
         columns = ['long_name', 'name', 'latitude', 'longitude', 'depth', 'comments']
-        df = pd.read_excel(self.raw_path, index=None)
+        df = pd.read_excel(self.raw_path, index_col=None)
         df.columns = columns
         df['comments'] = df['comments'].fillna('')
         # some 'stations' are just waypoints where there won't be a cast
