@@ -1,7 +1,7 @@
-pandas>=0.24.1
+pandas>=1.2.0
 numpy
 scipy
-xlrd
+openpyxl
 lxml
 jinja2
 django
