@@ -35,6 +35,8 @@ def parse_nut(nut_xl_path):
         bdl_col = '{}_bdl'.format(col)
         df[bdl_col] = bdl
         df[col] = new_values
+    #
+    df['lter_sample_id'] = df['nutrient_number'].str.replace('NL_','')
     return df
 
 def format_nut(df):
