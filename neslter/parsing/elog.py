@@ -119,6 +119,7 @@ class EventLog(object):
         df.loc[slic, CAST] = df.loc[slic, CAST].astype('str').str.replace('C','').astype(int)
         self.df = df
     def add_ctd_deployments(self, hdr_dir):
+        self.remove_ctd_recoveries()
         hdr = self.parse_ctd_hdrs(hdr_dir)
         self.remove_instrument(CTD_INSTRUMENT)
         self.add_events(hdr)
