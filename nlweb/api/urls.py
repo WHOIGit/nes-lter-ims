@@ -3,6 +3,16 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # READMEs
+    path('README', views.all_readme),
+    path('nut/README', views.nut_readme),
+    path('chl/README', views.chl_readme),
+    path('hplc/README', views.hplc_readme),
+    path('metadata/<cruise>/README', views.metadata_readme),
+    path('ctd/<cruise>/README', views.ctd_readme),
+    path('underway/<cruise>/README', views.underway_readme),
+    path('events/<cruise>/README', views.events_readme),
+
     path('cruises', views.cruises, name='cruises'),
 
     path('ctd/<cruise>/metadata.<extension>', views.ctd_metadata, name='ctd_metadata'),

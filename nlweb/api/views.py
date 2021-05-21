@@ -1,4 +1,6 @@
 from io import StringIO, BytesIO
+import os
+import glob
 
 from django.shortcuts import render
 
@@ -7,6 +9,8 @@ from django.http import HttpResponse, JsonResponse, Http404
 from django.views import View
 
 import pandas as pd
+
+from config import DATA_ROOT
 
 from neslter.parsing.files import Resolver
 
@@ -115,3 +119,55 @@ def chl(request, cruise, extension=None):
 def hplc(request, cruise, extension=None):
     wf = HplcWorkflow(cruise)
     return workflow_response(wf, extension)
+
+
+def path_exists_or_404(path):
+    if not os.path.exists(path):
+        raise Http404
+
+
+def find_readme(basepath):
+    for fn in glob.glob(os.path.join(DATA_ROOT, 'raw', basepath, 'README*')):
+        return fn
+    raise Http404
+
+
+def readme(*basepath_components):
+    basepath = os.path.join(*basepath_components)
+    path = find_readme(basepath)
+    with open(path, 'r') as fin:
+        content = fin.read()
+    return HttpResponse(content, content_type="text/plain")
+
+
+# READMES
+def all_readme(request):
+    return readme('all')
+
+
+def nut_readme(request):
+    return readme('all', 'nut')
+
+
+def chl_readme(request):
+    return readme('all', 'chl')
+
+
+def hplc_readme(request):
+    return readme('all', 'hplc')
+
+
+def metadata_readme(request, cruise):
+    return readme(cruise, 'metadata')
+
+
+def ctd_readme(request, cruise):
+    return readme(cruise, 'ctd')
+
+
+def underway_readme(request, cruise):
+    return readme(cruise, 'underway')
+
+
+def events_readme(request, cruise):
+    return readme(cruise, 'elog')
