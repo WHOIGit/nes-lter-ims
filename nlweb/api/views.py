@@ -127,6 +127,8 @@ def path_exists_or_404(path):
 
 
 def find_readme(basepath):
+    for fn in glob.glob(os.path.join(DATA_ROOT, 'corrected', basepath, 'README*')):
+        return fn
     for fn in glob.glob(os.path.join(DATA_ROOT, 'raw', basepath, 'README*')):
         return fn
     raise Http404
