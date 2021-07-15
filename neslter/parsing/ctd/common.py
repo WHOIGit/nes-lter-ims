@@ -22,7 +22,7 @@ CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar24)(\d\d\d)\.', # Armstrong 24a
     r'(ar\d\d[a-c]?)(\d\d\d)\.', # Armstrong 24b/c, 28
     r'(EN\d+).*[Cc]ast(\d+b?)(?:_\w+)?\.', # Endeavor 608, 617
-    r'(EN\d+).*(\d{3})\.', # Endeavor 627
+    r'([Ee][Nn]\d+).*(\d{3})\.', # Endeavor
     r'(RB\d+)-(\d{3})\.', # Ron Brown
     r'(tn\d+)-(\d{3})\.', # SPIROPA testing
 ]
