@@ -157,7 +157,7 @@ class EventLog(object):
     def to_dataframe(self):
         self.df.index = range(len(self.df))
         self.df = self.df.sort_values(DATETIME)
-        self.df = self.df[COLUMNS_WO_MESSAGE_ID]
+        self.df = self.df[ELOG_COLUMNS]
         filename = '{}_elog'.format(self.cruise)
         return data_table(self.df, filename=filename)
     # accessors
