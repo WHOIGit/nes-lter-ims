@@ -71,6 +71,28 @@ def cruises(request):
     cruises = Resolver().cruises()
     return JsonResponse({ 'cruises': cruises })
 
+def cruise_metadata(request):
+    rows = []
+    cruises = Resolver().cruises()
+    for cruise in cruises:
+        start_date = ''
+        end_date = ''
+        try:
+            elog = EventLogWorkflow(cruise).get_product()
+            start_date = elog[elog['Action'] == 'startCruise'].iloc[0]['dateTime8601']
+            end_date = elog[elog['Action'] == 'endCruise'].iloc[0]['dateTime8601']
+        except KeyError:  # no elog for this cruise
+            pass
+        except ValueError:  # error procssing elog
+            pass
+        rows.append({
+            'cruise': cruise,
+            'start': start_date,
+            'end': end_date,
+        })
+    df = pd.DataFrame(rows)
+    return dataframe_response(df, 'cruise_metadata', 'csv')
+
 def ctd_casts(request, cruise):
     wf = CtdMetadataWorkflow(cruise)
     try:
