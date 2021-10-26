@@ -14,7 +14,7 @@ urlpatterns = [
     path('events/<cruise>/README', views.events_readme),
 
     path('cruises', views.cruises, name='cruises'),
-    path('cruise_metadata.csv', views.cruise_metadata, name='cruise_metadata'),
+    path('cruises/metadata.csv', views.cruise_metadata, name='cruise_metadata'),
 
     path('ctd/<cruise>/metadata.<extension>', views.ctd_metadata, name='ctd_metadata'),
     path('ctd/<cruise>/metadata', views.ctd_metadata, name='ctd_metadata_json'),
