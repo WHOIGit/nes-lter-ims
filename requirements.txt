@@ -2,10 +2,5 @@ pandas>=1.2.0
 numpy
 scipy
 openpyxl
-lxml
-jinja2
-django
 numexpr
-psycopg2
-gdal
 geopy
