@@ -7,7 +7,7 @@ import warnings
 import pandas as pd
 import numpy as np
 
-from .files import Resolver, cruise_to_vessel, ENDEAVOR, ARMSTRONG
+from .files import Resolver, cruise_to_vessel, ENDEAVOR, ARMSTRONG, ATLANTIS
 from .utils import data_table
 
 from neslter.parsing.ctd.hdr import HdrFile
@@ -55,12 +55,12 @@ class _EndeavorParser(object):
         lon_col = 'gps_{}_longitude'.format(gps_model)
         return lat_col, lon_col
 
-class _ArmstrongParser(object):
+class _ArmstrongAtlantisParser(object):
     def __init__(self, csv_dir):
         self.df = self.parse(csv_dir)
     def parse(self, csv_dir, resolution=60):
         assert resolution == 60, 'unsupported resolution {}'.format(resolution)
-        REGEX = r'AR\d+\d{4}_\d{4}.csv'
+        REGEX = r'A[RT]\d+\d{4}_\d{4}.csv'
         dfs = []
         for f in sorted(os.listdir(csv_dir)):
             if re.match(REGEX, f):
@@ -88,8 +88,8 @@ class Underway(object):
         self.vessel = cruise_to_vessel(cruise)
         if self.vessel == ENDEAVOR:
             self.parser = _EndeavorParser(csv_dir, resolution)
-        elif self.vessel == ARMSTRONG:
-            self.parser = _ArmstrongParser(csv_dir)
+        elif self.vessel in [ARMSTRONG, ATLANTIS]:
+            self.parser = _ArmstrongAtlantisParser(csv_dir)
         self.filename = '{}_underway'.format(self.cruise)
         self.product_file = resolv.product_file(UNDERWAY, cruise, self.filename)
         self.dt = None # cached datatable
