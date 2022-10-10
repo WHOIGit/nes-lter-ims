@@ -16,7 +16,7 @@ def parse_asc_fwf(asc_path):
     # we can't do this from the header because in fixed-width files the
     # column names might not have any whitespace between them.
     # if this is the case for data values, this whole approach will fail
-    df = pd.read_fwf(asc_path, skiprows=1, nrows=1, header=None)
+    df = pd.read_fwf(asc_path, skiprows=1, nrows=1, header=None, encoding='latin-1')
     n_cols = len(df.columns)  
     # now get the length of the first line which contains headers
     with open(asc_path, encoding='latin-1') as fin:
