@@ -3,6 +3,7 @@ import os
 import glob as glob
 
 import pandas as pd
+import numpy as np
 
 def parse_lat_lon(ll):
     """convert deg/dec minutes into dec"""
@@ -88,13 +89,25 @@ class CtdTextParser(TextParser):
             self._parse_cruise_cast()
     def _parse_time(self):
         line = self._line_that_matches(r'\* NMEA UTC \(Time\)')
+        line2 = self._line_that_matches(r'\* System UTC')
+        if line is None:
+            line = line2
+        if line is None:
+            self.time = pd.NaT
+            return
         time = re.match(r'.*= (.*)', line).group(1)
         self.time = pd.to_datetime(time, utc=True)
     def _parse_lat_lon(self):
         lat_line = self._line_that_matches(r'\* NMEA Latitude')
         lon_line = self._line_that_matches(r'\* NMEA Longitude')
         split_regex = r'.*itude = (.*)'
-        self.lat = parse_lat_lon(re.match(split_regex, lat_line).group(1))
-        self.lon = parse_lat_lon(re.match(split_regex, lon_line).group(1))
+        if lat_line is not None:
+            self.lat = parse_lat_lon(re.match(split_regex, lat_line).group(1))
+        else:
+            self.lat = np.nan
+        if lon_line is not None:
+            self.lon = parse_lat_lon(re.match(split_regex, lon_line).group(1))
+        else:
+            self.lon = np.nan
     def _parse_cruise_cast(self):
         self.cruise, self.cast = pathname2cruise_cast(self.path)
