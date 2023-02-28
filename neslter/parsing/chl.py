@@ -70,7 +70,7 @@ def subset_chl(parsed_chl):
     cols = ['cruise','cast','niskin','replicate','vol_filtered','filter_size',
         'tau_calibration','fd_calibration',
         'rb','ra','blank','rb_blank','ra_blank',
-        'chl','phaeo']
+        'chl','phaeo','quality_flag']
     return parsed_chl[cols]
 
 def merge_bottle_summary(chl, bottle_summary):
