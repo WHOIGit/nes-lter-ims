@@ -1,13 +1,6 @@
-FROM continuumio/miniconda3
-
-RUN apt-get update
-
-# geospatial libraries
-RUN apt-get install -y binutils libproj-dev gdal-bin
+FROM condaforge/mambaforge
 
 WORKDIR /neslter
-
-RUN apt-get update
 
 # save space by using OpenBLAS instead of mkl, install gunicorn
 RUN conda install nomkl gunicorn
@@ -26,7 +19,7 @@ COPY VERSION .
 COPY setup.py .
 
 # install neslter library in the conda environment
-RUN python setup.py develop
+RUN python setup.py install
 
 # now copy the django app
 COPY ./nlweb ./nlweb
