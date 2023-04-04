@@ -28,8 +28,7 @@ def parse_chl(chl_xl_path):
         df.pop(c)
     # drop rows with nas
     df = df.dropna(subset=['vol_extracted',
-        'tau_calibration','fd_calibration','ra','rb',
-        'blank','chl','phaeo','filter_size'])
+        'tau_calibration','fd_calibration','filter_size'])
     # cast the int columns
     df = df.astype({ 'filter_size': int })
     # convert floats like 20180905.0 to dates
