@@ -1,6 +1,4 @@
 name: neslter
-channels:
-  - conda-forge
 dependencies:
 - pandas>=1.2.0
 - numpy
@@ -10,8 +8,4 @@ dependencies:
 - jinja2
 - django
 - numexpr
-- psycopg2
-- gdal
-- libgdal
-- libiconv
 - geopy

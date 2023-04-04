@@ -6,6 +6,4 @@ lxml
 jinja2
 django
 numexpr
-psycopg2
-gdal
 geopy

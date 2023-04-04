@@ -76,12 +76,8 @@ WSGI_APPLICATION = 'nlweb.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'neslter',
-        'USER': 'neslter',
-        'PASSWORD': 'neslter',
-        'HOST': 'postgres',  # <-- IMPORTANT: same name as docker-compose service!
-        'PORT': '5432',
     }
 }
 
