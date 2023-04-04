@@ -12,7 +12,7 @@ import pandas as pd
 
 from config import DATA_ROOT
 
-from neslter.parsing.files import Resolver
+from neslter.parsing.files import Resolver, DataNotFound
 
 from neslter.workflow.ctd import CtdCastWorkflow, CtdBottlesWorkflow, \
         CtdBottleSummaryWorkflow, CtdMetadataWorkflow
@@ -59,13 +59,9 @@ def workflow_response(workflow, extension=None):
     filename = workflow.filename()
     try:
         df = workflow.get_product()
-    except:
-        raise
-    #except KeyError:
-    #    raise Http404('data not found')
-    #except IndexError:
-    #    raise Http404('data not found')
-    return dataframe_response(df, filename, extension)
+        return dataframe_response(df, filename, extension)
+    except DataNotFound as e:
+        raise Http404(str(e))
 
 def cruises(request):
     cruises = Resolver().cruises()
