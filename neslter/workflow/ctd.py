@@ -29,7 +29,10 @@ class CtdCastWorkflow(CtdWorkflow):
         if not 'times' in cast_data.columns: # no time data available
             return cast_data # this is OK
         # the following will raise IndexError if cast is not in cast metadata
-        cast_start = pd.to_datetime(md[md.cast == self.cast].iloc[0].date)
+        try:
+            cast_start = pd.to_datetime(md[md.cast == str(self.cast)].iloc[0].date)
+        except IndexError:
+            cast_start = pd.to_datetime(md[md.cast.astype('string').str.strip("0") == self.cast.strip("0")].iloc[0].date)
         timestamp = cast_start + pd.to_timedelta(cast_data['times'], unit='s')
         cast_data['date'] = timestamp
         return cast_data

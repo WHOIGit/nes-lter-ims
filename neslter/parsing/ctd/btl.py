@@ -208,7 +208,7 @@ def parse_btl(in_path, add_depth=True, add_lat_lon=True):
     df = clean_column_names(df, {
         'Bottle': 'niskin'
         })
-    df = df.astype({ 'cast': int, 'niskin': int })
+    df = df.astype({ 'niskin': int })
     return df
 
 def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True, summary=False):
@@ -240,7 +240,6 @@ def summarize_compiled_btl_files(compiled_df):
         # sort on those columns even though they're strings
         df = df_with_cast_niskin.copy()
         # the strings are just integers, so we can cast
-        df['cast'] = df['cast'].astype(int)
         df['niskin'] = df['niskin'].astype(int)
         df = df.sort_values(['cruise','cast','niskin'])
         df['cast'] = df['cast'].astype(str)

@@ -27,8 +27,8 @@ urlpatterns = [
 
     path('ctd/<cruise>/casts', views.ctd_casts, name='ctd_casts'),
 
-    path('ctd/<cruise>/cast_<int:cast>.<extension>', views.ctd_cast, name='ctd_cast'),
-    path('ctd/<cruise>/cast_<int:cast>', views.ctd_cast, name='ctd_cast_json'),
+    path('ctd/<cruise>/cast_<cast>.<extension>', views.ctd_cast, name='ctd_cast'),
+    path('ctd/<cruise>/cast_<cast>', views.ctd_cast, name='ctd_cast_json'),
 
     path('underway/<cruise>.<extension>', views.underway, name='underway'),
     path('underway/<cruise>', views.underway, name='underway_json'),
