@@ -3,6 +3,8 @@ from glob import glob
 
 import pandas as pd
 
+from neslter.parsing.files import DataNotFound
+
 from ..utils import clean_column_names
 from .common import pathname2cruise_cast
 
@@ -67,4 +69,4 @@ def parse_cast(asc_dir, cast=1, delimiter=';'):
             df.insert(0, 'cast', cast)
             df.insert(0, 'cruise', cruise)
             return df
-    raise KeyError('cast not found: {}'.format(cast))
+    raise DataNotFound('cast not found: {}'.format(cast))
