@@ -8,6 +8,7 @@ from neslter.parsing.ctd import Ctd
 
 from .stations import StationsWorkflow
 
+from neslter.parsing.files import DataNotFound
 from neslter.workflow.stations import add_nearest_station
 
 CTD = 'ctd'
@@ -57,4 +58,7 @@ class CtdMetadataWorkflow(CtdWorkflow):
         return '{}_ctd_metadata'.format(self.cruise)
     def produce_product(self):
         md = Ctd(self.cruise).metadata()
-        return add_nearest_station(self.cruise, md)
+        try:
+            return add_nearest_station(self.cruise, md)
+        except DataNotFound:
+            return md
