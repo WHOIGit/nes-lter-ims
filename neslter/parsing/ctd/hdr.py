@@ -66,7 +66,11 @@ def compile_hdr_files(hdr_dir):
         'latitude': lats,
         'longitude': lons
     }).dropna()
-    df['cast'] = df['cast'].astype(int)
+    try:
+        df['cast'] = df['cast'].astype(int)
+    except ValueError:
+        df['cast'] = df['cast'].astype(str)
     df = df.sort_values('cast')
     df.index = range(len(df))
     return df
+    

@@ -208,7 +208,7 @@ def parse_btl(in_path, add_depth=True, add_lat_lon=True):
     df = clean_column_names(df, {
         'Bottle': 'niskin'
         })
-    df = df.astype({ 'cast': int, 'niskin': int })
+    df = df.astype({ 'niskin': int })
     return df
 
 def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True, summary=False):
@@ -220,6 +220,8 @@ def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True, summary=False):
             warnings.warn('cannot parse cruise and cast from "{}"'.format(path))
             continue
         df = parse_btl(path, add_depth=add_depth, add_lat_lon=add_lat_lon)
+        # remove duplicate columns if any
+        df = df.loc[:,~df.columns.duplicated()].copy()
         dfs.append(df)
     compiled_df = pd.concat(dfs, sort=False)
     compiled_df = compiled_df.sort_values(['cast','niskin'])
@@ -240,7 +242,6 @@ def summarize_compiled_btl_files(compiled_df):
         # sort on those columns even though they're strings
         df = df_with_cast_niskin.copy()
         # the strings are just integers, so we can cast
-        df['cast'] = df['cast'].astype(int)
         df['niskin'] = df['niskin'].astype(int)
         df = df.sort_values(['cruise','cast','niskin'])
         df['cast'] = df['cast'].astype(str)

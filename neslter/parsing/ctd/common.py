@@ -22,7 +22,8 @@ CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar22)(\d\d)\.', # Armstrong 22
     r'(ar24)(\d\d\d)\.', # Armstrong 24a
     r'(ar\d\d[a-c]?)(\d\d\d)\.', # Armstrong 24b/c, 28
-    r'(EN\d+).*[Cc]ast(\d+b?)(?:_\w+)?\.', # Endeavor 608, 617
+    r'(ar\d\d[a-c]?)(\d\d\d+[a-z]*)\.', # Armstrong 16, cast 009a
+    r'(EN\d+).*[Cc]ast(\d+[a-z]*?)(?:_\w+)?\.', # Endeavor 608, 617
     r'([Ee][Nn]\d+).*(\d{3})\.', # Endeavor
     r'(RB\d+)-(\d{3})\.', # Ron Brown
     r'(tn\d+)-(\d{3})\.', # SPIROPA testing
@@ -40,16 +41,12 @@ def pathname2cruise_cast(pathname, skip_bad_filenames=True):
                 cruise = 'ar24a'
             cruise = cruise.upper()
             # FIXME hardcoded to deal with problem with EN608 cast "13"
-            if cruise.lower() == 'en608' and cast == '13b':
-                cast = 14
+            # if cruise.lower() == 'en608' and cast == '13b':
+            #   cast = 14
             # FIXME hardcoded to deal with problem with EN627 cast "1"
             if cruise.lower() == 'en627' and cast == '1':
                 cast = 2
-            try:
-                cast = int(cast)
-            except ValueError:
-                raise ValueError('invalid cast number {}'.format(cast))
-            return cruise, cast
+            return cruise, cast      
     if not skip_bad_filenames:
         raise ValueError('unable to determine cruise and cast from "{}"'.format(pathname))
     else:

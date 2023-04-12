@@ -64,9 +64,17 @@ def parse_cast(asc_dir, cast=1, delimiter=';'):
         cruise, fcast = pathname2cruise_cast(b)
         if cruise is None or fcast is None: # bad filename, skip
             continue
-        if cast == int(fcast):
-            df = parse_asc(p, delimiter)
-            df.insert(0, 'cast', cast)
-            df.insert(0, 'cruise', cruise)
-            return df
+        try:
+            if int(cast) == int(fcast):
+                df = parse_asc(p, delimiter)
+                df.insert(0, 'cast', cast)
+                df.insert(0, 'cruise', cruise)
+                return df
+        except ValueError:
+            if (cast.lstrip("0") == fcast.lstrip("0")):
+                df = parse_asc(p, delimiter)
+                df.insert(0, 'cast', cast)
+                df.insert(0, 'cruise', cruise)
+                return df
+
     raise DataNotFound('cast not found: {}'.format(cast))

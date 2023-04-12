@@ -33,6 +33,9 @@ def dataframe_response(df, filename, extension='json'):
     if extension is None:
         extension = 'json'
     if extension == 'json':
+        df.reset_index(drop=True, inplace=True)
+        # remove duplicate columns if any
+        df = df.loc[:,~df.columns.duplicated()].copy()
         return HttpResponse(df.to_json(), content_type='application/json')
     elif extension == 'csv':
         sio = StringIO()
@@ -95,7 +98,7 @@ def ctd_casts(request, cruise):
         md = wf.get_product()
     except KeyError:
         raise Http404()
-    casts = [int(i) for i in sorted(md['cast'].unique())]
+    casts = [str(i) for i in sorted(md['cast'].unique())]
     return JsonResponse({'casts': casts})
 
 def ctd_metadata(request, cruise, extension=None):
