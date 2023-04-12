@@ -220,6 +220,8 @@ def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True, summary=False):
             warnings.warn('cannot parse cruise and cast from "{}"'.format(path))
             continue
         df = parse_btl(path, add_depth=add_depth, add_lat_lon=add_lat_lon)
+        # remove duplicate columns if any
+        df = df.loc[:,~df.columns.duplicated()].copy()
         dfs.append(df)
     compiled_df = pd.concat(dfs, sort=False)
     compiled_df = compiled_df.sort_values(['cast','niskin'])

@@ -34,6 +34,8 @@ def dataframe_response(df, filename, extension='json'):
         extension = 'json'
     if extension == 'json':
         df.reset_index(drop=True, inplace=True)
+        # remove duplicate columns if any
+        df = df.loc[:,~df.columns.duplicated()].copy()
         return HttpResponse(df.to_json(), content_type='application/json')
     elif extension == 'csv':
         sio = StringIO()
