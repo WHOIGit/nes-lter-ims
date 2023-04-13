@@ -21,8 +21,7 @@ services:
       - NGINX_HTTPS_PORT=${HTTPS_PORT}
     volumes:
       - ./nginx_templates:/etc/nginx/templates
-#      - ${NGINX_LOG_DIR}:/var/log/nginx
-      - ./nginx_logs:/var/log/nginx
+      - ${NGINX_LOG_DIR}:/var/log/nginx
       - ${SSL_KEY}:/ssl/ssl.key:ro
       - ${SSL_CERT}:/ssl/ssl.cer:ro
     ports:
