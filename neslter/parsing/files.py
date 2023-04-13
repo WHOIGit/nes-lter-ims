@@ -1,7 +1,8 @@
 import os
 from .utils import safe_makedirs
 
-from config import DATA_ROOT
+
+DATA_ROOT=os.environ.get('DATA_ROOT', '/data')
 
 RAW = 'raw'
 PRODUCTS = 'products'
