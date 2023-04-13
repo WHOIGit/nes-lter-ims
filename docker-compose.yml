@@ -8,6 +8,7 @@ services:
       - DATA_ROOT=/data
     volumes:
       - ${DATA_ROOT}:/data
+      - ${LOCAL_SETTINGS}:/neslter/nlweb/nlweb/local_settings.py
     networks:
       - nginx_network
 

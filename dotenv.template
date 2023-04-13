@@ -8,3 +8,5 @@ SSL_CERT=./ssl_temp/cert.pem
 SSL_KEY=./ssl_temp/key.pem
 
 NGINX_LOG_DIR=./nginx_logs
+
+LOCAL_SETTINGS=local_settings.py.template
