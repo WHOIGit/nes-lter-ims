@@ -1,25 +1,34 @@
 version: '3'
 
 services:
-  nlweb:
+  neslter:
     build: .
     container_name: neslter
+    environment:
+      - DATA_ROOT=/data
     volumes:
-      - ./data:/data
+      - ${DATA_ROOT}:/data
+      - ${LOCAL_SETTINGS}:/neslter/nlweb/nlweb/local_settings.py
     networks:
       - nginx_network
 
   nginx:
     image: nginx:latest
     container_name: nginx
-    ports:
-      - 80:80
-      - 443:443
+    environment:
+      - NGINX_HOST=${HOST}
+      - NGINX_HTTP_PORT=${HTTP_PORT}
+      - NGINX_HTTPS_PORT=${HTTPS_PORT}
     volumes:
-      - ./certs:/etc/certs
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx_templates:/etc/nginx/templates
+      - ${NGINX_LOG_DIR}:/var/log/nginx
+      - ${SSL_KEY}:/ssl/ssl.key:ro
+      - ${SSL_CERT}:/ssl/ssl.cer:ro
+    ports:
+      - ${HTTP_PORT}:${HTTP_PORT}
+      - ${HTTPS_PORT}:${HTTPS_PORT}
     depends_on:
-      - nlweb
+      - neslter
     networks:
       - nginx_network
 

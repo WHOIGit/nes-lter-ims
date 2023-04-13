@@ -24,9 +24,6 @@ RUN python setup.py install
 # now copy the django app
 COPY ./nlweb ./nlweb
 
-# configure the neslter library
-COPY config.py .
-
 EXPOSE 8000
 
 CMD gunicorn --chdir nlweb --bind :8000 nlweb.wsgi:application --reload

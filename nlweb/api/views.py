@@ -10,7 +10,7 @@ from django.views import View
 
 import pandas as pd
 
-from config import DATA_ROOT
+DATA_ROOT=os.environ.get('DATA_ROOT', '/data')
 
 from neslter.parsing.files import Resolver, DataNotFound
 
