@@ -9,4 +9,4 @@ SSL_KEY=./ssl_temp/key.pem
 
 NGINX_LOG_DIR=./nginx_logs
 
-LOCAL_SETTINGS=local_settings.py.template
+LOCAL_SETTINGS=./local_settings.py.template
