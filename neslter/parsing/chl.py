@@ -26,10 +26,6 @@ def parse_chl(chl_xl_path):
             cols2delete.add(c)
     for c in cols2delete:
         df.pop(c)
-    # drop rows with nas
-    df = df.dropna(subset=['vol_extracted',
-        'tau_calibration','fd_calibration','ra','rb',
-        'blank','chl','phaeo','filter_size'])
     # cast the int columns
     df = df.astype({ 'filter_size': int })
     # convert floats like 20180905.0 to dates
@@ -76,11 +72,11 @@ def subset_chl(parsed_chl):
 def merge_bottle_summary(chl, bottle_summary):
     chl = chl.copy()
     bottle_summary = bottle_summary.copy()
-    chl.cast = chl.cast.astype(str)
-    chl.niskin = chl.niskin.astype(str)
-    bottle_summary.cast = bottle_summary.cast.astype(str)
-    bottle_summary.niskin = bottle_summary.niskin.astype(str)
-    return chl.merge(bottle_summary, on=['cruise','cast','niskin'])
+    chl.cast = chl.cast.astype(int)
+    chl.niskin = chl.niskin.astype(int)
+    bottle_summary.cast = bottle_summary.cast.astype(int)
+    bottle_summary.niskin = bottle_summary.niskin.astype(int)
+    return chl.merge(bottle_summary, on=['cruise','cast','niskin'], how='left')
 
 def parse_ryn_chl(chl_xl_path):
     # read Excel file
