@@ -10,6 +10,9 @@ from django.views import View
 
 import pandas as pd
 
+import traceback
+import sys
+
 DATA_ROOT=os.environ.get('DATA_ROOT', '/data')
 
 from neslter.parsing.files import Resolver, DataNotFound
@@ -64,7 +67,16 @@ def workflow_response(workflow, extension=None):
         df = workflow.get_product()
         return dataframe_response(df, filename, extension)
     except DataNotFound as e:
+        sys.tracebacklimit = 0
+        print(traceback.format_exc())    # print DataNotFound message to console
+        print("404 error in workflow_response")  #missing elog or ctd dir or invalid cruise
         raise Http404(str(e))
+    except ValueError as e: 
+        print(e)              # prints invalid elog file contents error for AR61a        
+        raise Http404(str(e))  
+    except Exception as e:
+        print (e)             # prints elog file not found for AR16
+        raise Http404(str(e))  
 
 def cruises(request):
     cruises = Resolver().cruises()

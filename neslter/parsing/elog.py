@@ -135,7 +135,9 @@ class EventLog(object):
         self.df = merged
     def apply_additions(self, addns_path):
         addns = pd.read_excel(addns_path)
-        addns[DATETIME] = pd.to_datetime(addns[DATETIME], utc=True)
+        # passing `format='ISO8601'` fixes EN668 addition file datetime format inconsistencies
+        # if your strings are all ISO8601 but not necessarily in exactly the same format
+        addns[DATETIME] = pd.to_datetime(addns[DATETIME], utc=True, format="ISO8601")
         # add placeholder columns
         addns.insert(4, 'Longitude', np.nan)
         addns.insert(4, 'Latitude', np.nan)
@@ -169,7 +171,7 @@ class EventLog(object):
         return self.df[self.df[INSTRUMENT] == instrument]
     def stations(self):
         ctdf = self.events_for_instrument(CTD_INSTRUMENT)
-        casts = ctdf[CAST].map(cast_to_int)
+        casts = ctdf[CAST]
         stations = ctdf[STATION]
         stations.index = casts
         return stations
@@ -197,9 +199,13 @@ class EventLog(object):
 
 def parse_elog(elog_path):
     assert os.path.exists(elog_path), 'elog file not found at {}'.format(elog_path)
-    df = pd.read_csv(elog_path, dtype={
-        CAST: str
-    })
+    try:
+        df = pd.read_csv(elog_path, dtype={
+            CAST: str
+        })
+    except Exception as e:
+        print(e)     # print parse error to console
+        raise ValueError('event log file cannot be parsed {}'.format(elog_path))
     df[DATETIME] = pd.to_datetime(df[DATETIME], utc=True) # parse date column
     df = df[ELOG_COLUMNS] # retain only the columns we want to use
     df = df.sort_values(DATETIME) # sort by time
