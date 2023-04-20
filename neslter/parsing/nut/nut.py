@@ -43,16 +43,6 @@ def format_nut(df):
     prec = { c: 3 for c in NUT_COLS }
     return format_dataframe(df, precision=prec)
 
-def fix_ooi_nut_replicates(df):
-    # specifically deal with case where OOI took replicates
-    # and the OOI nut ID column looks like '6-1/6-2'
-    rep_a = df[df.replicate == 'a']
-    rep_b = df[df.replicate == 'b']   
-    # put '6-1' in rep_a and '6-2' in rep_b
-    rep_a.loc[:,'ooi_nut_id'] = rep_a.loc[:,'ooi_nut_id'].str.split('/').str[0]
-    rep_b.loc[:,'ooi_nut_id'] = rep_b.loc[:,'ooi_nut_id'].str.split('/').str[1]
-    return pd.concat([rep_a, rep_b])
-
 def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     assert os.path.exists(sample_log_path)
     assert os.path.exists(nut_path)
@@ -92,7 +82,6 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     nit['sample_id'] = nit.pop('lter_sample_id').astype(str)
     nut_profile = merged.merge(nit, on='sample_id')
     nut_profile['date'] = pd.to_datetime(nut_profile['date'], utc=True)
-    nut_profile = fix_ooi_nut_replicates(nut_profile)
     nut_profile = nut_profile.sort_values(['cast','niskin','replicate'])
     nut_profile['alternate_sample_id'] = nut_profile.pop('ooi_nut_id')
     if cruise.lower() in JP_STUDENT_CRUISES:
