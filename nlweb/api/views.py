@@ -10,9 +10,6 @@ from django.views import View
 
 import pandas as pd
 
-import traceback
-import sys
-
 DATA_ROOT=os.environ.get('DATA_ROOT', '/data')
 
 from neslter.parsing.files import Resolver, DataNotFound

@@ -199,13 +199,9 @@ class EventLog(object):
 
 def parse_elog(elog_path):
     assert os.path.exists(elog_path), 'elog file not found at {}'.format(elog_path)
-    try:
-        df = pd.read_csv(elog_path, dtype={
-            CAST: str
-        })
-    except Exception as e:
-        print(e)     # print parse error to console
-        raise ValueError('event log file cannot be parsed {}'.format(elog_path))
+    df = pd.read_csv(elog_path, dtype={
+        CAST: str
+    })
     df[DATETIME] = pd.to_datetime(df[DATETIME], utc=True) # parse date column
     df = df[ELOG_COLUMNS] # retain only the columns we want to use
     df = df.sort_values(DATETIME) # sort by time
