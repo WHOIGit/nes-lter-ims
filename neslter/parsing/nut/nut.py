@@ -47,9 +47,10 @@ def fix_ooi_nut_replicates(df):
     # specifically deal with case where OOI took replicates
     # and the OOI nut ID column looks like '6-1/6-2'
     rep_a = df[df.replicate == 'a']
-    rep_b = df[df.replicate == 'b']
-    rep_a.loc[:,'ooi_nut_id'].str.replace(r'/.*','')
-    rep_b.loc[:,'ooi_nut_id'].str.replace(r'/.*','')
+    rep_b = df[df.replicate == 'b']   
+    # put '6-1' in rep_a and '6-2' in rep_b
+    rep_a.loc[:,'ooi_nut_id'] = rep_a.loc[:,'ooi_nut_id'].str.split('/').str[0]
+    rep_b.loc[:,'ooi_nut_id'] = rep_b.loc[:,'ooi_nut_id'].str.split('/').str[1]
     return pd.concat([rep_a, rep_b])
 
 def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
@@ -83,7 +84,7 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     sample_ids.niskin = sample_ids.niskin.astype(int)
     btl_sum.niskin = btl_sum.niskin.astype(int)
     merged = btl_sum.merge(sample_ids, on=['cruise','cast','niskin'])
-    # sort alphanumeric casts in numeric order (not alpa order) such that 2 preceeds 12
+    # sort alphanumeric casts in numeric order (not alpha order) such that 2 preceeds 12
     a = merged.index.to_series().astype(int).sort_values()
     merged = merged.reindex(index=a.index)
     # merge nutrient data
