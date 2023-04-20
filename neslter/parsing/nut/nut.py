@@ -43,15 +43,6 @@ def format_nut(df):
     prec = { c: 3 for c in NUT_COLS }
     return format_dataframe(df, precision=prec)
 
-def fix_ooi_nut_replicates(df):
-    # specifically deal with case where OOI took replicates
-    # and the OOI nut ID column looks like '6-1/6-2'
-    rep_a = df[df.replicate == 'a']
-    rep_b = df[df.replicate == 'b']
-    rep_a['ooi_nut_id'] = rep_a['ooi_nut_id'].str.replace(r'/.*','')
-    rep_b['ooi_nut_id'] = rep_b['ooi_nut_id'].str.replace(r'.*/','')
-    return pd.concat([rep_a, rep_b])
-
 def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     assert os.path.exists(sample_log_path)
     assert os.path.exists(nut_path)
@@ -78,17 +69,19 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     sample_ids = wide_to_long(df, [['nut_a'],['nut_b']], ['sample_id'], 'replicate', ['a','b'])
     # merge with bottle summary
     btl_sum = bottle_summary
-    sample_ids.cast = sample_ids.cast.astype(int)
-    btl_sum.cast = btl_sum.cast.astype(int)
+    sample_ids.cast = sample_ids.cast.astype(str)
+    btl_sum.cast = btl_sum.cast.astype(str).str.strip("0")  #remove leading 0 for merge
     sample_ids.niskin = sample_ids.niskin.astype(int)
     btl_sum.niskin = btl_sum.niskin.astype(int)
     merged = btl_sum.merge(sample_ids, on=['cruise','cast','niskin'])
+    # sort alphanumeric casts in numeric order (not alpha order) such that 2 preceeds 12
+    a = merged.index.to_series().astype(int).sort_values()
+    merged = merged.reindex(index=a.index)
     # merge nutrient data
     nit = parse_nut(nut_path)[['lter_sample_id','nitrate_nitrite','ammonium','phosphate','silicate']]
     nit['sample_id'] = nit.pop('lter_sample_id').astype(str)
     nut_profile = merged.merge(nit, on='sample_id')
     nut_profile['date'] = pd.to_datetime(nut_profile['date'], utc=True)
-    nut_profile = fix_ooi_nut_replicates(nut_profile)
     nut_profile = nut_profile.sort_values(['cast','niskin','replicate'])
     nut_profile['alternate_sample_id'] = nut_profile.pop('ooi_nut_id')
     if cruise.lower() in JP_STUDENT_CRUISES:
