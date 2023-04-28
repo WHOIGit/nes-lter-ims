@@ -163,10 +163,6 @@ class EventLog(object):
         filename = '{}_elog'.format(self.cruise)
         return data_table(self.df, filename=filename)
     # accessors
-    def ctd_events(self):
-        ctd = self.events_for_instrument(CTD_INSTRUMENT).copy()
-        ctd[CAST] = ctd[CAST].map(cast_to_int)
-        return ctd
     def events_for_instrument(self, instrument):
         return self.df[self.df[INSTRUMENT] == instrument]
     def stations(self):
@@ -179,10 +175,33 @@ class EventLog(object):
         return self.stations().index
     def cast_to_station(self, cast):
         """return the station, given the cast"""
-        if cast in self.stations().index:
-            return self.stations().loc[cast]
-        else:
+        cast_len = self.stations().index.astype(str).str.len()  
+        try:
+            # convert integer casts to strings and add leading zeros, i.e. ar34b
+            cast = str(cast).zfill(cast_len[0])
+        except:
+            pass
+        # handle data types: int, str, float, nan   
+        try:
+            station_data = self.stations().loc[cast] 
+            try: 
+                if not station_data.empty: 
+                    return station_data.values[0]
+                else: 
+                    return np.nan
+            except:
+                return np.nan
+        except AttributeError:
+            if not pd.isna(station_data):
+                try:
+                    return self.stations().loc[cast].values[0]
+                except:
+                    return np.nan
+            else: 
+                return np.nan
+        except KeyError:
             return np.nan
+
     # parse hdr files to generate CTD deploy events
     def parse_ctd_hdrs(self, hdr_dir):
         assert os.path.exists(hdr_dir), 'CTD hdr directory not found at {}'.format(hdr_dir)
@@ -208,12 +227,6 @@ def parse_elog(elog_path):
     df.index = df[MESSAGE_ID].values
     return df
 
-def cast_to_int(cast):
-    """given a string naming a cast, remove non-alpha characters and parse as int"""
-    try:
-        return int(re.sub('^[^0-9]+','',cast))
-    except:
-        raise ValueError('cannot interpret cast {} as an integer'.format(cast))
 
 # parse and clean oxygen isotope data
 
