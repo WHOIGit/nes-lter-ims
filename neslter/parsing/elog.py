@@ -11,6 +11,8 @@ from neslter.parsing.files import Resolver
 from neslter.parsing.ctd.hdr import compile_hdr_files
 from neslter.parsing.underway import Underway
 
+from neslter.parsing.files import DataNotFound
+
 # keys
 
 INSTRUMENT = 'Instrument'
@@ -45,7 +47,8 @@ COLUMNS_WO_MESSAGE_ID = [DATETIME, INSTRUMENT, ACTION, STATION, CAST, LAT, LON, 
 def elog_path(cruise):
     elog_dir = Resolver().raw_directory('elog', cruise)
     candidates = glob(os.path.join(elog_dir, 'R2R_ELOG_*_FINAL_EVENTLOG*.csv'))
-    assert len(candidates) == 1, 'cannot find event log at {}'.format(elog_dir)
+    if len(candidates) != 1:
+         raise DataNotFound ('cannot find event log at {}'.format(elog_dir))
     return candidates[0]
 
 def hdr_path(cruise):
