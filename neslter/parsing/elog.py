@@ -204,7 +204,8 @@ class EventLog(object):
 
     # parse hdr files to generate CTD deploy events
     def parse_ctd_hdrs(self, hdr_dir):
-        assert os.path.exists(hdr_dir), 'CTD hdr directory not found at {}'.format(hdr_dir)
+        if (not os.path.exists(hdr_dir)):
+            raise DataNotFound('CTD hdr directory not found at {}'.format(hdr_dir))
         hdr = compile_hdr_files(hdr_dir)
         hdr = hdr[['date','cast','latitude','longitude']]
         hdr.insert(1, 'Station', hdr['cast'].map(lambda c: self.cast_to_station(c)))
@@ -217,7 +218,8 @@ class EventLog(object):
 # parse elog and clean columns / column names
 
 def parse_elog(elog_path):
-    assert os.path.exists(elog_path), 'elog file not found at {}'.format(elog_path)
+    if (not os.path.exists(elog_path)):
+        raise DataNotFound('elog file not found at {}'.format(elog_path))
     df = pd.read_csv(elog_path, dtype={
         CAST: str
     })

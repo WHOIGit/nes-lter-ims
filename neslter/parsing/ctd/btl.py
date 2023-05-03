@@ -26,7 +26,8 @@ CAST_COL = 'Cast'
 
 def _col_values(line, col_widths, justification='right'):
     """read fixed-width column values"""
-    assert justification in ['left', 'right', 'center']
+    if justification not in ['left', 'right', 'center']:
+        raise ValueError('Justification not left, right, or center')
     vals = []
     i = 0
 

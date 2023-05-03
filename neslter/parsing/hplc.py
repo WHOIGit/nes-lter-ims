@@ -5,6 +5,8 @@ from glob import glob
 import numpy as np
 import pandas as pd
 
+from neslter.parsing.files import DataNotFound
+
 MAPPINGS = {
     "mappings": {
         "Cruise ID": "cruise",
@@ -131,7 +133,8 @@ def hplc_report_paths(hplc_dir):
     #return [ 'Sosik08-15report.xlsx' ]
 
 def parse_report(report_path):
-    assert os.path.exists(report_path)
+    if (not os.path.exists(report_path)):
+        raise DataNotFound('Report path not found at {}'.format(report_path))
 
     Y = 'Year'
     M = 'Month'
