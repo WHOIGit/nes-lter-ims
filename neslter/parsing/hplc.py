@@ -145,6 +145,10 @@ def parse_report(report_path):
         T: str
     })
 
+    # report file contains invalid time fields, ie 6:40:00 AM, instead of 06:40
+    # minutes must be padded with a leading zero before passed to pd.to_datetime
+    report[T] = report[T].str.split(':', n=2).str[:2].str.join(':')
+    report[T] = report[T].str.zfill(5)
     # parse date fields
     dates = report[M] + ' ' + report[D] + ' ' + report[Y] + ' ' + report[T]
     report['date'] = pd.to_datetime(dates, utc=True)
@@ -155,9 +159,9 @@ def parse_report(report_path):
     for c in report.columns:
         if c not in mappings:
             report.pop(c)
-
+    
     report.columns = [ mappings[c] for c in report.columns ]
-
+    
     # produce replicate column
     report.sort_values(['cruise','cast','niskin'], inplace=True)
 
@@ -179,7 +183,7 @@ def parse_report(report_path):
     report['comments'] = report.pop('comments') + ' ' \
         + report.pop('comments2') + ' ' + report.pop('comments3')
     report['comments'] = report['comments'].str.strip()
-
+ 
     return report
 
 def parse_hplc(hplc_dir):
