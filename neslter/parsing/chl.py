@@ -74,7 +74,7 @@ def merge_bottle_summary(chl, bottle_summary):
     bottle_summary = bottle_summary.copy()
     chl.cast = chl.cast.astype(str)
     chl.niskin = chl.niskin.astype(int)
-    bottle_summary.cast = bottle_summary.cast.astype(str).str.strip("0")  #remove leading 0s for merge
+    bottle_summary.cast = bottle_summary.cast.astype(str).str.lstrip("0")  #remove leading 0s for merge
     bottle_summary.niskin = bottle_summary.niskin.astype(int)
     return chl.merge(bottle_summary, on=['cruise','cast','niskin'], how='left')
 
