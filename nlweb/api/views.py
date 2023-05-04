@@ -80,9 +80,9 @@ def cruise_metadata(request):
             elog = EventLogWorkflow(cruise).get_product()
             start_date = elog[elog['Action'] == 'startCruise'].iloc[0]['dateTime8601']
             end_date = elog[elog['Action'] == 'endCruise'].iloc[0]['dateTime8601']
-        except KeyError:  # no elog for this cruise
+        except DataNotFound: # no elog or elog dir 
             pass
-        except ValueError:  # error procssing elog
+        except ValueError:  # error processing elog
             pass
         rows.append({
             'cruise': cruise,
