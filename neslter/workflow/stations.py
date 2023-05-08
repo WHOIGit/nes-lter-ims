@@ -2,6 +2,7 @@ from neslter.parsing.stations import Stations, StationLocator
 from .api import Workflow
 
 from neslter.parsing.files import Resolver
+from neslter.parsing.files import DataNotFound
 
 METADATA = 'metadata'
 
@@ -21,7 +22,7 @@ def add_nearest_station(cruise, product, require=False):
         smd = st_wf.get_product()
         station_locator = StationLocator(smd)
         return station_locator.cast_to_station(product)
-    except KeyError:
+    except DataNotFound:
         # no station metadata. That's OK
         if require:
             raise
