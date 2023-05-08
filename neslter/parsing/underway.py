@@ -13,6 +13,8 @@ from .utils import data_table
 from neslter.parsing.ctd.hdr import HdrFile
 from neslter.parsing.utils import clean_column_names, doy_to_datetime, date_time_to_datetime
 
+from neslter.parsing.files import DataNotFound
+
 DATETIME_ISO8601 = 'DateTime_ISO8601'
 DATETIME = 'date' # this column name round-trips with df.to_json
 
@@ -25,7 +27,8 @@ class _EndeavorParser(object):
         self.df = self.parse(csv_dir, resolution)
     def parse(self, csv_dir, resolution=60):
         """compile daily underway files"""
-        assert resolution in [1, 60] # not aware of any other resolutions
+        if resolution not in [1, 60]:
+            raise DataNotFound('Resolution {} not in [1,60]'.format(resolution))
         dfs = []
         for fn in sorted(os.listdir(csv_dir)):
             # files have names like Data60Sec_Daily_20180204-000000.csv
@@ -59,7 +62,8 @@ class _ArmstrongAtlantisParser(object):
     def __init__(self, csv_dir):
         self.df = self.parse(csv_dir)
     def parse(self, csv_dir, resolution=60):
-        assert resolution == 60, 'unsupported resolution {}'.format(resolution)
+        if resolution != 60:
+            raise DataNotFound('Unsupported resolution {}'.format(resolution))
         REGEX = r'A[RT]\d+\d{4}_\d{4}.csv'
         dfs = []
         for f in sorted(os.listdir(csv_dir)):
@@ -120,10 +124,14 @@ class Underway(object):
         """given a dataframe with a datetime column and lat lon cols,
         fill in any NaNs in the lat/lon columns with the results of
         time_to_location"""
-        assert time_column in df.columns, 'no such column {}'.format(time_column)
-        assert lat_col in df.columns, 'no such column {}'.format(lat_col)
-        assert lon_col in df.columns, 'no such column {}'.format(lon_col)
-        assert len(df.index) == len(df.index.unique()), 'index must be unique'
+        if time_column not in df.columns:
+            raise DataNotFound('no such column {}'.format(time_column))
+        if lat_col not in df.columns:
+            raise DataNotFound('no such column {}'.format(lat_col))
+        if lon_col not in df.columns:
+            raise DataNotFound('no such column {}'.format(lon_col))
+        if len(df.index) != len(df.index.unique()):
+            raise DataNotFound('index must be unique')
         df = df.copy()
         mods = []
         for row in df.itertuples():

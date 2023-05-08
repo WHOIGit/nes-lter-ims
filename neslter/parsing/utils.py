@@ -199,9 +199,11 @@ def wide_to_long(df, wide_cols_list, value_cols, long_col, long_labels):
     | something | 2 | 20 |     b     |
     +-----------+---+----+-----------+
     """
-    assert len(wide_cols_list) == len(long_labels)
+    if len(wide_cols_list) != len(long_labels):
+        raise ValueError('Number wide columns does not match number long labels')
     for w in wide_cols_list:
-        assert len(w) == len(value_cols)
+        if len(w) != len(value_cols):
+            raise ValueError('Number wide columns does not match number value columns')
     exclude_cols = []
     for w in wide_cols_list:
         exclude_cols = exclude_cols + w
