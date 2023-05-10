@@ -75,7 +75,7 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     # merge with bottle summary
     btl_sum = bottle_summary
     sample_ids.cast = sample_ids.cast.astype(str)
-    btl_sum.cast = btl_sum.cast.astype(str).str.strip("0")  #remove leading 0 for merge
+    btl_sum.cast = btl_sum.cast.astype(str).str.lstrip("0")  #remove leading 0s for merge
     sample_ids.niskin = sample_ids.niskin.astype(int)
     btl_sum.niskin = btl_sum.niskin.astype(int)
     merged = btl_sum.merge(sample_ids, on=['cruise','cast','niskin'])
