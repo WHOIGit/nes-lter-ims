@@ -5,6 +5,9 @@ import glob as glob
 import pandas as pd
 import numpy as np
 
+CRUISE_IDX = 1
+CAST_IDX = 2
+
 def parse_lat_lon(ll):
     """convert deg/dec minutes into dec"""
     REGEX = r'(\d+)[^\d]+([\d.]+)[^NSEW]*([NSEW])'
@@ -24,7 +27,7 @@ CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar\d\d[a-c]?)(\d\d\d)\.', # Armstrong 24b/c, 28
     r'(ar\d\d[a-c]?)(\d\d\d+[a-z]*)\.', # Armstrong 16, cast 009a
     r'(EN\d+).*[Cc]ast(\d+[a-z]*?)(?:_\w+)?\.', # Endeavor 608, 617
-    r'([Ee][Nn]\d+).*(\d{3})\.', # Endeavor
+    r'([Ee][Nn]\d+).*(\d{3})(?:_u)?\.', # Endeavor, EN627_028_u.asc
     r'(RB\d+)-(\d{3})\.', # Ron Brown
     r'(tn\d+)-(\d{3})\.', # SPIROPA testing
     r'(at\d+)_(\d{3})\.', # Atlantis
@@ -35,7 +38,8 @@ def pathname2cruise_cast(pathname, skip_bad_filenames=True):
     for regex in CRUISE_CAST_PATHNAME_REGEXES:
         m = re.match(regex, fn)
         if m is not None:
-            cruise, cast = m.groups()
+            cruise = m.group(CRUISE_IDX)
+            cast = m.group(CAST_IDX)
             # handle issue with old filenames for ar24a
             if cruise == 'ar24':
                 cruise = 'ar24a'
