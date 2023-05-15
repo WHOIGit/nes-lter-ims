@@ -83,7 +83,6 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     nit = parse_nut(nut_path)[['lter_sample_id','nitrate_nitrite','ammonium','phosphate','silicate']]
     nit['sample_id'] = nit.pop('lter_sample_id').astype(str)
     nut_profile = merged.merge(nit, on='sample_id')
-    print("nut_profile", nut_profile)
     nut_profile['date'] = pd.to_datetime(nut_profile['date'], utc=True)
     nut_profile = nut_profile.sort_values(['cast','niskin','replicate'])
     # sort alphanumeric casts in numeric order (not alpha order) such that 2 preceeds 12
