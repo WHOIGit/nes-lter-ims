@@ -33,7 +33,7 @@ class CtdCastWorkflow(CtdWorkflow):
         try:
             cast_start = pd.to_datetime(md[md.cast == str(self.cast)].iloc[0].date)
         except IndexError:
-            cast_start = pd.to_datetime(md[md.cast.astype('string').str.strip("0") == self.cast.strip("0")].iloc[0].date)
+            cast_start = pd.to_datetime(md[md.cast.astype('string').str.lstrip("0") == self.cast.lstrip("0")].iloc[0].date)
         timestamp = cast_start + pd.to_timedelta(cast_data['times'], unit='s')
         cast_data['date'] = timestamp
         return cast_data

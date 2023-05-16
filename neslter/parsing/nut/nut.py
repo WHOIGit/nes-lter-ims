@@ -75,19 +75,19 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     # merge with bottle summary
     btl_sum = bottle_summary
     sample_ids.cast = sample_ids.cast.astype(str)
-    btl_sum.cast = btl_sum.cast.astype(str).str.strip("0")  #remove leading 0 for merge
+    btl_sum.cast = btl_sum.cast.astype(str).str.lstrip("0")  #remove leading 0s for merge
     sample_ids.niskin = sample_ids.niskin.astype(int)
     btl_sum.niskin = btl_sum.niskin.astype(int)
     merged = btl_sum.merge(sample_ids, on=['cruise','cast','niskin'])
-    # sort alphanumeric casts in numeric order (not alpha order) such that 2 preceeds 12
-    a = merged.index.to_series().astype(int).sort_values()
-    merged = merged.reindex(index=a.index)
     # merge nutrient data
     nit = parse_nut(nut_path)[['lter_sample_id','nitrate_nitrite','ammonium','phosphate','silicate']]
     nit['sample_id'] = nit.pop('lter_sample_id').astype(str)
     nut_profile = merged.merge(nit, on='sample_id')
     nut_profile['date'] = pd.to_datetime(nut_profile['date'], utc=True)
     nut_profile = nut_profile.sort_values(['cast','niskin','replicate'])
+    # sort alphanumeric casts in numeric order (not alpha order) such that 2 preceeds 12
+    a = nut_profile.index.to_series().astype(int).sort_values()
+    nut_profile = nut_profile.reindex(index=a.index)
     nut_profile['alternate_sample_id'] = nut_profile.pop('ooi_nut_id')
     if cruise.lower() in JP_STUDENT_CRUISES:
         nut_profile['project_id'] = 'JP'
