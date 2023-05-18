@@ -95,10 +95,15 @@ class StationLocator(object):
         index = []
         for point in df.itertuples():
             index.append(point.Index)
-            distances = self.station_distances(getattr(point, lat_col), getattr(point, lon_col))
-            min_distance = distances.min()
-            nearest.append(self.station_metadata.loc[distances.idxmin()]['name'])
-            distance.append(min_distance)
+            # lat, lon can be NA when there is no bottle file
+            if getattr(point, lat_col) != 'NA':
+                distances = self.station_distances(getattr(point, lat_col), getattr(point, lon_col))
+                min_distance = distances.min()
+                nearest.append(self.station_metadata.loc[distances.idxmin()]['name'])
+                distance.append(min_distance)
+            else:
+                nearest.append('NA')
+                distance.append('NA')
         return pd.DataFrame({
             'nearest_station': nearest,
             'distance_km': distance,
