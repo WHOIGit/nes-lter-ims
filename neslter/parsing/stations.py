@@ -17,7 +17,10 @@ class Stations(object):
         resolv = Resolver()
         raw_filename = '{}_station_list.xlsx'.format(cruise.upper())
         path = resolv.raw_file(METADATA, raw_filename, cruise=cruise)
-        if not os.path.exists(path):
+        raw_dir = resolv.raw_directory(METADATA, cruise=cruise)
+        filenames = os.listdir(raw_dir)
+        # use case-sensitive string compare for case-insensitive file systems
+        if raw_filename not in filenames:
             raise KeyError('cannot find station metadata at {}'.format(path))
         self.raw_path = path
         self.cruise = cruise
