@@ -78,6 +78,7 @@ def find_file(directories, filename, extension=None):
 ENDEAVOR = 'Endeavor'
 ARMSTRONG = 'Armstrong'
 ATLANTIS = 'Atlantis'
+SHARP = 'Sharp'
 
 def cruise_to_vessel(cruise):
     lower = cruise.lower()
@@ -87,5 +88,7 @@ def cruise_to_vessel(cruise):
         return ARMSTRONG
     elif lower.startswith('at'):
         return ATLANTIS
+    elif lower.startswith('hrs'):
+        return SHARP
     else:
         raise KeyError('cannot determine vessel for {}'.format(cruise))

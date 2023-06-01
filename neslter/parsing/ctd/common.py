@@ -31,6 +31,7 @@ CRUISE_CAST_PATHNAME_REGEXES = [
     r'(RB\d+)-(\d{3})\.', # Ron Brown
     r'(tn\d+)-(\d{3})\.', # SPIROPA testing
     r'(at\d+)_(\d{3})\.', # Atlantis
+    r'([Hh][Rr][Ss]\d+).*(\d{3})\.', #Sharp
 ]
 
 def pathname2cruise_cast(pathname, skip_bad_filenames=True):

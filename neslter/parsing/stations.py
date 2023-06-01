@@ -15,7 +15,10 @@ METADATA = 'metadata'
 class Stations(object):
     def __init__(self, cruise):
         resolv = Resolver()
-        raw_filename = '{}_station_list.xlsx'.format(cruise.upper())
+        if cruise.startswith('en'):
+            raw_filename = '{}_station_list.xlsx'.format(cruise.upper())
+        else:
+            raw_filename = '{}_station_list.xlsx'.format(cruise)
         path = resolv.raw_file(METADATA, raw_filename, cruise=cruise)
         if not os.path.exists(path):
             raise KeyError('cannot find station metadata at {}'.format(path))
