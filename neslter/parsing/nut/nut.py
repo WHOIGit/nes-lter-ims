@@ -1,10 +1,13 @@
 import os
+from glob import glob
 
 import numpy as np
 import pandas as pd
 
 from ..utils import clean_column_names, dropna_except, format_dataframe, wide_to_long
 from ..cruises import JP_STUDENT_CRUISES
+from neslter.parsing.files import Resolver
+from neslter.parsing.ctd.common import pathname2cruise_cast
 
 from neslter.parsing.files import DataNotFound
 
@@ -78,17 +81,35 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     btl_sum.cast = btl_sum.cast.astype(str).str.lstrip("0")  #remove leading 0s for merge
     sample_ids.niskin = sample_ids.niskin.astype(int)
     btl_sum.niskin = btl_sum.niskin.astype(int)
-    merged = btl_sum.merge(sample_ids, on=['cruise','cast','niskin'])
+    # include sample_ids cast rows when cast missing from btl_sum
+    merged = btl_sum.merge(sample_ids, on=['cruise','cast','niskin'], how='right')
     # merge nutrient data
     nit = parse_nut(nut_path)[['lter_sample_id','nitrate_nitrite','ammonium','phosphate','silicate']]
     nit['sample_id'] = nit.pop('lter_sample_id').astype(str)
     nut_profile = merged.merge(nit, on='sample_id')
     nut_profile['date'] = pd.to_datetime(nut_profile['date'], utc=True)
-    nut_profile = nut_profile.sort_values(['cast','niskin','replicate'])
     # sort alphanumeric casts in numeric order (not alpha order) such that 2 preceeds 12
-    a = nut_profile.index.to_series().astype(int).sort_values()
-    nut_profile = nut_profile.reindex(index=a.index)
+    nut_profile['cast'] = pd.to_numeric(nut_profile['cast'])
+    nut_profile = nut_profile.sort_values(['cast','niskin','replicate'])
+    nut_profile['cast'] = nut_profile['cast'].astype(str)
     nut_profile['alternate_sample_id'] = nut_profile.pop('ooi_nut_id')
+
+    # set date, lat, lon, depth to NA when there is no bottle file for the cast
+    btl_dir = Resolver().raw_directory('ctd', cruise)
+    for file in sorted(glob(os.path.join(btl_dir, '*.asc'))):
+        btl_file = file[:-3] + 'btl'
+        if not os.path.exists(btl_file):
+            _, cast = pathname2cruise_cast(btl_file)
+            if cast is None:
+                 continue
+            cast = cast.lstrip('0')
+            nut_profile.loc[nut_profile['cast'] == cast, 'date'] = 'NA'
+            nut_profile.loc[nut_profile['cast'] == cast, 'latitude'] = 'NA'
+            nut_profile.loc[nut_profile['cast'] == cast, 'longitude'] = 'NA'
+            nut_profile.loc[nut_profile['cast'] == cast, 'depth'] = 'NA'
+
+    # drop rows (picked up in btl_sum.merge right) with casts that were not in btl_sum
+    nut_profile.dropna(subset=['date'], inplace=True)
     if cruise.lower() in JP_STUDENT_CRUISES:
         nut_profile['project_id'] = 'JP'
     else:
