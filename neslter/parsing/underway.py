@@ -7,7 +7,7 @@ import warnings
 import pandas as pd
 import numpy as np
 
-from .files import Resolver, cruise_to_vessel, ENDEAVOR, ARMSTRONG, ATLANTIS
+from .files import Resolver, cruise_to_vessel, ENDEAVOR, ARMSTRONG, ATLANTIS, SHARP
 from .utils import data_table
 
 from neslter.parsing.ctd.hdr import HdrFile
@@ -69,7 +69,7 @@ class _ArmstrongAtlantisParser(object):
         for f in sorted(os.listdir(csv_dir)):
             if re.match(REGEX, f):
                 df = pd.read_csv(os.path.join(csv_dir, f), skiprows=1, na_values=[' NAN', ' NODATA'])
-                dfs.append(df)     
+                dfs.append(df)
         df = clean_column_names(pd.concat(dfs, ignore_index=True))
         df.insert(0, DATETIME, date_time_to_datetime(df.pop('date_gmt'), df.pop('time_gmt')))
         df.index = df[DATETIME]
@@ -80,6 +80,25 @@ class _ArmstrongAtlantisParser(object):
         if 'gps_model' in kw and kw['gps_model'] is not None:
             warnings.warn('specifying GPS model for Armstrong data has no effect')
         return 'dec_lat', 'dec_lon'
+    
+class _SharpParser(object):
+    def __init__(self, csv_dir):
+        self.df = self.parse(csv_dir)
+    def parse(self, csv_dir, resolution=60):
+        dfs = []
+        for file in sorted(os.listdir(csv_dir)):
+            if not re.match(r'HRS\d+_Data\d+Sec_\d+-\d+\.csv'.format(resolution), file):
+                continue
+            df = pd.read_csv(os.path.join(csv_dir, file), header=[0], na_values=[' NAN', ' NODATA'])
+            dfs.append(df)
+        try:
+           df = pd.concat(dfs, ignore_index=True)
+        except:
+           raise ValueError('No Underway files found in {}'.format(csv_dir))
+        df = clean_column_names(pd.concat(dfs))
+        return df
+    def to_dataframe(self):
+        return self.df
 
 class Underway(object):
     def __init__(self, cruise, resolution=60, raw_directory=None): 
@@ -94,6 +113,8 @@ class Underway(object):
             self.parser = _EndeavorParser(csv_dir, resolution)
         elif self.vessel in [ARMSTRONG, ATLANTIS]:
             self.parser = _ArmstrongAtlantisParser(csv_dir)
+        elif self.vessel in [SHARP]:
+            self.parser = _SharpParser(csv_dir)
         self.filename = '{}_underway'.format(self.cruise)
         self.product_file = resolv.product_file(UNDERWAY, cruise, self.filename)
         self.dt = None # cached datatable
