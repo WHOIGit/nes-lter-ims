@@ -84,26 +84,18 @@ class _ArmstrongAtlantisParser(object):
 class _SharpParser(object):
     def __init__(self, csv_dir):
         self.df = self.parse(csv_dir)
-    def clean_sharp_column_names(self, df):
-        """clean all column names for a sharp dataframe with TWO rows as header columns"""
-        df.columns = [tuple(subcol.lower() for subcol in col) if isinstance(col, tuple) else col.lower() for col in df.columns]
-        df.columns = df.columns.map(lambda x: tuple(re.sub(r'[^a-z0-9_]+', '_', subcol) for subcol in x) if isinstance(x, tuple) else re.sub(r'[^a-z0-9_]+', '_', x))
-        # future possible column header substitutions
-        df.columns = df.columns.map(lambda x: tuple(re.sub(r'_$', '_', subcol) for subcol in x) if isinstance(x, tuple) else re.sub(r'_$', '_', x))
-        df.columns = df.columns.map(lambda x: tuple(re.sub(r'^([0-9])',r'_\1', subcol) for subcol in x) if isinstance(x, tuple) else re.sub(r'^([0-9])',r'_\1', x))
-        return df
     def parse(self, csv_dir, resolution=60):
         dfs = []
         for file in sorted(os.listdir(csv_dir)):
             if not re.match(r'HRS\d+_Data\d+Sec_\d+-\d+\.csv'.format(resolution), file):
                 continue
-            df = pd.read_csv(os.path.join(csv_dir, file), header=[0, 1], na_values=[' NAN', ' NODATA'])
+            df = pd.read_csv(os.path.join(csv_dir, file), header=[0], na_values=[' NAN', ' NODATA'])
             dfs.append(df)
         try:
            df = pd.concat(dfs, ignore_index=True)
         except:
            raise ValueError('No Underway files found in {}'.format(csv_dir))
-        df = self.clean_sharp_column_names(pd.concat(dfs))
+        df = clean_column_names(pd.concat(dfs))
         return df
     def to_dataframe(self):
         return self.df
