@@ -19,7 +19,7 @@ class CtdWorkflow(Workflow):
 
 class CtdCastWorkflow(CtdWorkflow):
     def __init__(self, cruise, cast):
-        self.cruise = cruise
+        self.cruise = cruise.lower()
         self.cast = cast
     def filename(self):
         return '{}_ctd_cast_{}'.format(self.cruise, self.cast)

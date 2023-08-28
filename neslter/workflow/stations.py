@@ -8,7 +8,7 @@ METADATA = 'metadata'
 
 class StationsWorkflow(Workflow):
     def __init__(self, cruise):
-        self.cruise = cruise
+        self.cruise = cruise.lower()
     def directories(self):
         return Resolver().directories(METADATA, self.cruise)
     def filename(self):

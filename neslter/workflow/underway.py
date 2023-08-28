@@ -11,7 +11,7 @@ UNDERWAY = 'underway'
 
 class UnderwayWorkflow(Workflow):
     def __init__(self, cruise):
-        self.cruise = cruise
+        self.cruise = cruise.lower()
     def directories(self):
         return Resolver().directories(UNDERWAY, self.cruise)
     def filename(self):
