@@ -15,10 +15,7 @@ METADATA = 'metadata'
 class Stations(object):
     def __init__(self, cruise):
         resolv = Resolver()
-        if cruise.startswith('en'):
-            raw_filename = '{}_station_list.xlsx'.format(cruise.upper())
-        else:
-            raw_filename = '{}_station_list.xlsx'.format(cruise)
+        raw_filename = '{}_station_list.xlsx'.format(cruise.upper())
         path = resolv.raw_file(METADATA, raw_filename, cruise=cruise)
         raw_dir = resolv.raw_directory(METADATA, cruise=cruise)
         filenames = os.listdir(raw_dir)
