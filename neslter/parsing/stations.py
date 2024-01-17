@@ -102,15 +102,20 @@ class StationLocator(object):
             if getattr(point, lat_col) != 'NA':
                 distances = self.station_distances(getattr(point, lat_col), getattr(point, lon_col))
                 min_distance = distances.min()
-                nearest.append(self.station_metadata.loc[distances.idxmin()]['name'])
-                distance.append(min_distance)
+                if min_distance > 2:
+                    nearest.append('NA')
+                    distance.append('NA')
+                else:
+                    nearest.append(self.station_metadata.loc[distances.idxmin()]['name'])
+                    distance.append(min_distance.round(3))
             else:
                 nearest.append('NA')
                 distance.append('NA')
-        return pd.DataFrame({
+        df = pd.DataFrame({
             'nearest_station': nearest,
-            'distance_km': distance,
+            'distance_km': distance
         }, index=index)
+        return df
     def cast_to_station(self, ctd_metadata):
         df = ctd_metadata.copy()
         ns = self.nearest_station(df)
