@@ -9,7 +9,7 @@ EVENT_LOG = 'elog'
 
 class EventLogWorkflow(Workflow):
     def __init__(self, cruise):
-        self.cruise = cruise
+        self.cruise = cruise.lower()
     def directories(self):
         return Resolver().directories(EVENT_LOG, self.cruise)
     def filename(self):
