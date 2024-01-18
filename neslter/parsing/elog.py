@@ -153,12 +153,15 @@ class EventLog(object):
             uw = Underway(self.cruise)
         except:
             raise
-        uw_lat = self.df[DATETIME].map(lambda t: uw.time_to_lat(t))
-        uw_lon = self.df[DATETIME].map(lambda t: uw.time_to_lon(t))
-        #self.df[LAT] = self.df[LAT].combine_first(uw_lat)
-        #self.df[LON] = self.df[LON].combine_first(uw_lon)
-        self.df[LAT] = uw_lat
-        self.df[LON] = uw_lon
+        try:
+            uw_lat = self.df[DATETIME].map(lambda t: uw.time_to_lat(t))
+            uw_lon = self.df[DATETIME].map(lambda t: uw.time_to_lon(t))
+            #self.df[LAT] = self.df[LAT].combine_first(uw_lat)
+            #self.df[LON] = self.df[LON].combine_first(uw_lon)
+            self.df[LAT] = uw_lat
+            self.df[LON] = uw_lon
+        except:
+            pass # FIXME need to address issues with Sharp underway data
     def to_dataframe(self):
         self.df.index = range(len(self.df))
         self.df = self.df.sort_values(DATETIME)

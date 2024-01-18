@@ -74,12 +74,18 @@ def cruise_metadata(request):
     rows = []
     cruises = Resolver().cruises()
     for cruise in cruises:
-        start_date = ''
-        end_date = ''
+        start_date = 'NAN'
+        end_date = 'NAN'
         try:
             elog = EventLogWorkflow(cruise).get_product()
-            start_date = elog[elog['Action'] == 'startCruise'].iloc[0]['dateTime8601']
-            end_date = elog[elog['Action'] == 'endCruise'].iloc[0]['dateTime8601']
+            try:
+                start_date = elog[elog['Action'] == 'startCruise'].iloc[0]['dateTime8601']
+            except IndexError:
+                pass # no startCruise
+            try:
+                end_date = elog[elog['Action'] == 'endCruise'].iloc[0]['dateTime8601']
+            except IndexError:
+                pass # no endCruise
         except DataNotFound: # no elog or elog dir 
             pass
         except ValueError:  # error processing elog

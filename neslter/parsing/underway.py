@@ -97,6 +97,8 @@ class _SharpParser(object):
            raise ValueError('No Underway files found in {}'.format(csv_dir))
         df = clean_column_names(pd.concat(dfs))
         return df
+    def lat_lon_columns(self, **kw):
+        return 'latitude_deg', 'longitude_deg'
     def to_dataframe(self):
         return self.df
 
