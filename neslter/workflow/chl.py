@@ -29,8 +29,10 @@ class ChlWorkflow(Workflow):
                     bottle_summaries.append(CtdBottleSummaryWorkflow(cruise).produce_product())
                 except DataNotFound: # this is OK, some cruises don't have data
                     pass
+            if not bottle_summaries:
+                raise DataNotFound('no bottle summary data found')
             bottle_summary = pd.concat(bottle_summaries)
         else:
             chl = subset[subset['cruise'] == self.cruise.upper()]
             bottle_summary = CtdBottleSummaryWorkflow(self.cruise).produce_product()
-        return merge_bottle_summary(chl, bottle_summary)
+        return merge_bottle_summary(chl, bottle_summary).sort_values('date')
