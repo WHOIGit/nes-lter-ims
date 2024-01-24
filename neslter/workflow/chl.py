@@ -1,7 +1,9 @@
 # import os
+import pandas as pd
+
 from .api import Workflow
 
-from neslter.parsing.files import Resolver
+from neslter.parsing.files import DataNotFound, Resolver
 from neslter.parsing.chl import parse_chl, subset_chl, merge_bottle_summary
 
 from neslter.workflow.ctd import CtdBottleSummaryWorkflow
@@ -19,6 +21,16 @@ class ChlWorkflow(Workflow):
         chl_path = Resolver().raw_file(CHL, 'NESLTERchl.xlsx')
         parsed = parse_chl(chl_path)
         subset = subset_chl(parsed)
-        chl = subset[subset['cruise'] == self.cruise.upper()]
-        bottle_summary = CtdBottleSummaryWorkflow(self.cruise).produce_product()
+        if self.cruise.lower() == 'all':
+            chl = subset
+            bottle_summaries = []
+            for cruise in Resolver().cruises():
+                try:
+                    bottle_summaries.append(CtdBottleSummaryWorkflow(cruise).produce_product())
+                except DataNotFound: # this is OK, some cruises don't have data
+                    pass
+            bottle_summary = pd.concat(bottle_summaries)
+        else:
+            chl = subset[subset['cruise'] == self.cruise.upper()]
+            bottle_summary = CtdBottleSummaryWorkflow(self.cruise).produce_product()
         return merge_bottle_summary(chl, bottle_summary)
