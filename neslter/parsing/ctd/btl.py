@@ -3,7 +3,9 @@ from glob import glob
 import os
 import warnings
 
-import pandas as pd 
+import pandas as pd
+
+from neslter.parsing.files import DataNotFound 
 
 from .common import CtdTextParser, pathname2cruise_cast
 from ..utils import clean_column_names
@@ -215,7 +217,8 @@ def parse_btl(in_path, add_depth=True, add_lat_lon=True):
 def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True, summary=False):
     """convert a set of bottle files to a single dataframe"""
     dfs = []
-    for path in find_btl_files(in_dir):
+    paths = find_btl_files(in_dir)
+    for path in paths:
         cr, ca = pathname2cruise_cast(path, skip_bad_filenames=True)
         if cr is None:
             warnings.warn('cannot parse cruise and cast from "{}"'.format(path))
@@ -224,6 +227,8 @@ def compile_btl_files(in_dir, add_depth=True, add_lat_lon=True, summary=False):
         # remove duplicate columns if any
         df = df.loc[:,~df.columns.duplicated()].copy()
         dfs.append(df)
+    if not dfs:
+        raise DataNotFound('no bottle files found in {}'.format(in_dir))
     compiled_df = pd.concat(dfs, sort=False)
     compiled_df = compiled_df.sort_values(['cast','niskin'])
     compiled_df.reset_index()
