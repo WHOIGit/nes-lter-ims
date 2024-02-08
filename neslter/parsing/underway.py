@@ -89,7 +89,8 @@ class _SharpParser(object):
         for file in sorted(os.listdir(csv_dir)):
             if not re.match(r'HRS\d+_Data\d+Sec_\d+-\d+\.csv'.format(resolution), file):
                 continue
-            df = pd.read_csv(os.path.join(csv_dir, file), header=[0], na_values=[' NAN', ' NODATA'])
+            df = pd.read_csv(os.path.join(csv_dir, file), header=[0], 
+                             na_values=[' NAN', ' NODATA'] , na_rep='NaN') #set numeric missing values to 'NaN'
             dfs.append(df)
         try:
            df = pd.concat(dfs, ignore_index=True)
