@@ -29,6 +29,7 @@ def parse_asc_fwf(asc_path):
     col_width = int(len(line) / n_cols)
     col_widths = [col_width for _ in range(n_cols)]
     # now parse the fixed-width format
+    # Pandas will automatically append ".1" to any duplicate column name
     df = pd.read_fwf(asc_path, widths=col_widths, encoding='latin-1')
     return df
 
