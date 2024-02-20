@@ -76,11 +76,9 @@ def merge_bottle_summary(chl, bottle_summary):
     chl.niskin = chl.niskin.astype(int)
     bottle_summary.cast = bottle_summary.cast.astype(str).str.lstrip("0")  #remove leading 0s for merge
     bottle_summary.niskin = bottle_summary.niskin.astype(int)
-    # merge bottle summary only if btl data exists for the cruise
-    common_cruises = pd.Series(list(set(chl['cruise']) & set(bottle_summary['cruise'])))
-    chl_common = chl[chl['cruise'].isin(common_cruises)]
-    bottle_summary_common = bottle_summary[bottle_summary['cruise'].isin(common_cruises)]
-    return chl_common.merge(bottle_summary_common, on=['cruise','cast','niskin'], how='left')
+    chl = chl.merge(bottle_summary, on=['cruise','cast','niskin'], how='left')
+    chl = chl.dropna(subset=['cruise'])
+    return chl
 
 def parse_ryn_chl(chl_xl_path):
     # read Excel file
