@@ -2,7 +2,7 @@ import math
 from glob import glob
 import os
 import warnings
-
+import numpy as np
 import pandas as pd
 
 from neslter.parsing.files import DataNotFound 
@@ -260,6 +260,9 @@ def summarize_compiled_btl_files(compiled_df):
     # convert lat/lon to floats
     btl['latitude'] = btl['latitude'].astype(float)
     btl['longitude'] = btl['longitude'].astype(float)
+    # convert numeric cs-c1s/m to NaN if blank
+    if 'c2_c1s_m' in btl.columns:
+        btl['c2_c1s_m'].replace('', np.nan, inplace=True)
     # sort by cruise, cast, niskin
     btl = sort_cruise_cast_niskin(btl)
     return btl

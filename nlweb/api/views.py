@@ -1,6 +1,8 @@
 from io import StringIO, BytesIO
 import os
 import glob
+import csv
+import numpy as np
 
 from django.shortcuts import render
 
@@ -38,10 +40,28 @@ def dataframe_response(df, filename, extension='json'):
         df = df.loc[:,~df.columns.duplicated()].copy()
         return HttpResponse(df.to_json(), content_type='application/json')
     elif extension == 'csv':
-        sio = StringIO()
-        df.to_csv(sio, index=None, encoding='utf-8')
-        csv = sio.getvalue()
-        response = HttpResponse(csv, content_type='text/csv')
+        # Can't use df.to_csv here because pandas converts missing 
+        # strings and numeric types to the empty string.
+        # We want numeric types to be NaN
+        df.replace(pd.NA, 'NaN', inplace=True)
+        df.replace(np.nan, 'NaN', inplace=True)
+        df.replace(pd.NaT, ' ', inplace=True) 
+        if 'Station' in df.columns:    # api/events
+            df['Station'] = df['Station'].replace('NaN', '')
+        if 'Comment' in df.columns:    # api/events
+            df['Comment'] = df['Comment'].replace('NaN', '')
+        if 'Cast' in df.columns:     
+            df['Cast'] = df['Cast'].replace('NaN', '')
+        if 'cast' in df.columns:     
+            df['cast'] = df['cast'].replace('NaN', '')
+        csv_buffer = StringIO()
+        columns = df.columns.tolist()
+        csv_writer = csv.DictWriter(csv_buffer, fieldnames=columns)
+        csv_writer.writeheader()
+        for _, row in df.iterrows():
+            csv_writer.writerow(row.to_dict())
+        csv_string = csv_buffer.getvalue()
+        response = HttpResponse(csv_string, content_type='text/csv')
         if filename is not None:
             csv_filename = '{}.csv'.format(filename)
             response = as_attachment(response, csv_filename)
@@ -56,7 +76,10 @@ def dataframe_response(df, filename, extension='json'):
             response = as_attachment(response, mat_filename)
         return response
     else:
-        raise Http404('unsupported file type .{}'.format(extension))   
+        raise Http404('unsupported file type .{}'.format(extension)) 
+
+def new_func(df):
+    print(df['date'].to_string())  
 
 def workflow_response(workflow, extension=None):
     filename = workflow.filename()
