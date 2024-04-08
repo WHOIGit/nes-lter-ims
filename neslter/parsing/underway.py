@@ -90,7 +90,9 @@ class _SharpParser(object):
             if not re.match(r'HRS\d+_Data\d+Sec_\d+-\d+\.csv'.format(resolution), file):
                 continue
             df = pd.read_csv(os.path.join(csv_dir, file), header=[0], 
-                             na_values=[' NAN', ' NODATA'] , na_rep='NaN') #set numeric missing values to 'NaN'
+                             na_values=[' NAN', ' NODATA'])
+            if 'date' in df.columns:
+                df['date'] = df['date'].fillna('')
             dfs.append(df)
         try:
            df = pd.concat(dfs, ignore_index=True)
