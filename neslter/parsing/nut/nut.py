@@ -103,7 +103,7 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
             if cast is None:
                  continue
             cast = cast.lstrip('0')
-            nut_profile.loc[nut_profile['cast'] == cast, 'date'] = 'NA'
+            nut_profile.loc[nut_profile['cast'] == cast, 'date'] = ''
             nut_profile.loc[nut_profile['cast'] == cast, 'latitude'] = 'NA'
             nut_profile.loc[nut_profile['cast'] == cast, 'longitude'] = 'NA'
             nut_profile.loc[nut_profile['cast'] == cast, 'depth'] = 'NA'
