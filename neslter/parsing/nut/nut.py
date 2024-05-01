@@ -97,6 +97,8 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
     # set date, lat, lon, depth to NA when there is no bottle file for the cast
     btl_dir = Resolver().raw_directory('ctd', cruise)
     for file in sorted(glob(os.path.join(btl_dir, '*.asc'))):
+        if cruise == 'en627':
+            file = file.replace("_u", "")
         btl_file = file[:-3] + 'btl'
         if not os.path.exists(btl_file):
             _, cast = pathname2cruise_cast(btl_file)
@@ -104,9 +106,9 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
                  continue
             cast = cast.lstrip('0')
             nut_profile.loc[nut_profile['cast'] == cast, 'date'] = 'NA'
-            nut_profile.loc[nut_profile['cast'] == cast, 'latitude'] = 'NA'
-            nut_profile.loc[nut_profile['cast'] == cast, 'longitude'] = 'NA'
-            nut_profile.loc[nut_profile['cast'] == cast, 'depth'] = 'NA'
+            nut_profile.loc[nut_profile['cast'] == cast, 'latitude'] = 'NaN'
+            nut_profile.loc[nut_profile['cast'] == cast, 'longitude'] = 'NaN'
+            nut_profile.loc[nut_profile['cast'] == cast, 'depth'] = 'NaN'
 
     # drop rows (picked up in btl_sum.merge right) with casts that were not in btl_sum
     nut_profile.dropna(subset=['date'], inplace=True)
