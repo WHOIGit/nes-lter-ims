@@ -106,9 +106,9 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
                  continue
             cast = cast.lstrip('0')
             nut_profile.loc[nut_profile['cast'] == cast, 'date'] = ''
-            nut_profile.loc[nut_profile['cast'] == cast, 'latitude'] = 'NaN'
-            nut_profile.loc[nut_profile['cast'] == cast, 'longitude'] = 'NaN'
-            nut_profile.loc[nut_profile['cast'] == cast, 'depth'] = 'NaN'
+            nut_profile.loc[nut_profile['cast'] == cast, 'latitude'] = 'NA'
+            nut_profile.loc[nut_profile['cast'] == cast, 'longitude'] = 'NA'
+            nut_profile.loc[nut_profile['cast'] == cast, 'depth'] = 'NA'
 
     # drop rows (picked up in btl_sum.merge right) with casts that were not in btl_sum
     nut_profile.dropna(subset=['date'], inplace=True)
