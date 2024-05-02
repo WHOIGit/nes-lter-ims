@@ -1,12 +1,6 @@
-FROM condaforge/mambaforge
+FROM python:3.12-slim
 
 WORKDIR /neslter
-
-# save space by using OpenBLAS instead of mkl, install gunicorn
-RUN conda install nomkl gunicorn
-
-COPY environment.yml .
-RUN conda env update -n root -f environment.yml
 
 COPY requirements.txt .
 
