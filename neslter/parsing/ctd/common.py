@@ -28,7 +28,7 @@ CRUISE_CAST_PATHNAME_REGEXES = [
     r'(ar\d\d[a-c]?)(\d\d\d+[a-z]*)\.', # Armstrong 16, cast 009a
     r'(ar\d\d[a-c]?).*(\d{3})\.', # Armstrong ar70b_001
     r'(EN\d+).*[Cc]ast(\d+[a-z]*?)(?:_\w+)?\.', # Endeavor 608, 617
-    r'([Ee][Nn]\d+).*(\d{3})(?:_u)?\.', # Endeavor, EN627_028_u.asc
+    r'([Ee][Nn]\d+)[^\d]+(\d+)(?:_u)?\.', # Endeavor, EN627_028_u.asc
     r'(RB\d+)-(\d{3})\.', # Ron Brown
     r'(tn\d+)-(\d{3})\.', # SPIROPA testing
     r'(at\d+)_(\d{3})\.', # Atlantis
