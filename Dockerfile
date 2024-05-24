@@ -12,7 +12,7 @@ COPY README.md .
 COPY VERSION .
 COPY setup.py .
 
-# install neslter library in the conda environment
+# install neslter library
 RUN python setup.py install
 
 # now copy the django app
