@@ -98,8 +98,8 @@ class StationLocator(object):
         index = []
         for point in df.itertuples():
             index.append(point.Index)
-            # lat, lon can be NA when there is no bottle file
-            if getattr(point, lat_col) != 'NA':
+            # lat, lon can be NaN when there is no bottle file
+            if not pd.isna(getattr(point, lat_col)):
                 distances = self.station_distances(getattr(point, lat_col), getattr(point, lon_col))
                 min_distance = distances.min()
                 if min_distance > 2:
