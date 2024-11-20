@@ -2,6 +2,8 @@ FROM python:3.12-slim
 
 WORKDIR /neslter
 
+RUN python3 -m pip install --upgrade pip setuptools
+
 COPY requirements.txt .
 
 # copy the neslter library code
