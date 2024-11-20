@@ -7,7 +7,7 @@ import warnings
 import pandas as pd
 import numpy as np
 
-from .files import Resolver, cruise_to_vessel, ENDEAVOR, ARMSTRONG, ATLANTIS, SHARP
+from .files import Resolver, cruise_to_vessel, ENDEAVOR, ARMSTRONG, ATLANTIS, SHARP, EXPLORER
 from .utils import data_table
 
 from neslter.parsing.ctd.hdr import HdrFile
@@ -104,6 +104,33 @@ class _SharpParser(object):
         return 'latitude_deg', 'longitude_deg'
     def to_dataframe(self):
         return self.df
+    
+class _ExplorerParser(object):
+    def __init__(self, csv_dir):
+        self.df = self.parse(csv_dir)
+    def parse(self, csv_dir, resolution=60):
+        dfs = []
+        for file in sorted(os.listdir(csv_dir)):
+            if not re.match(r'WDC.*\.csv'.format(resolution), file):
+                continue
+            df = pd.read_csv(os.path.join(csv_dir, file), header=[0])
+            dfs.append(df)
+        try:
+           df = pd.concat(dfs, ignore_index=True)
+        except:
+           raise ValueError('No Underway files found in {}'.format(csv_dir))
+        df = clean_column_names(pd.concat(dfs))
+        ymd = pd.to_datetime(df['ymd'], format='%Y%m%d')
+        hms_padded = df['hms'].apply(lambda x: f"{x:06}")
+        hms = hms_padded.str[:2] + ':' + hms_padded.str[2:4] + ':' + hms_padded.str[4:6]
+        df = df.drop(columns=['ymd', 'hms'])
+        df.insert(0, DATETIME, date_time_to_datetime(ymd.dt.strftime('%Y-%m-%d'), hms))
+        df.index = df[DATETIME]
+        return df
+    def lat_lon_columns(self, **kw):
+        return 'latitude', 'longitude'
+    def to_dataframe(self):
+        return self.df    
 
 class Underway(object):
     def __init__(self, cruise, resolution=60, raw_directory=None): 
@@ -120,6 +147,8 @@ class Underway(object):
             self.parser = _ArmstrongAtlantisParser(csv_dir)
         elif self.vessel in [SHARP]:
             self.parser = _SharpParser(csv_dir)
+        elif self.vessel in [EXPLORER]:
+            self.parser = _ExplorerParser(csv_dir)
         self.filename = '{}_underway'.format(self.cruise)
         self.product_file = resolv.product_file(UNDERWAY, cruise, self.filename)
         self.dt = None # cached datatable
