@@ -49,7 +49,129 @@ def format_nut(df):
     prec = { c: 3 for c in NUT_COLS }
     return format_dataframe(df, precision=prec)
 
-def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
+def apply_flags(df):
+
+# Flagging scheme based on IODE flag
+# 1 = good
+# 2 = not reviewed
+# 3 = questionable
+# 4 = bad (always throw out)
+
+# Detection Limit diff for each nutrient
+# nitrate_nitrite = 0.04
+# ammonium = 0.015
+# phosphate = 0.009
+# silicate = 0.030
+
+# Set all OOI ammonium flags to 3, all other OOI flags to 2
+
+    DL_dict = {
+        'nitrate_nitrite': 0.04,
+        'ammonium': 0.01,
+        'phosphate': 0.009,
+        'silicate': 0.03
+    }
+    flag_dict = {
+        'nitrate_nitrite': 'flag_nitrate_nitrite',
+        'ammonium': 'flag_ammonium',
+        'phosphate': 'flag_phosphate',
+        'silicate': 'flag_silicate'
+    }
+
+    diff_dict = {
+        'nitrate_nitrite': 8.5,
+        'ammonium': 99,         # 99 represents no processing
+        'phosphate': 99,
+        'silicate': 99
+    }
+
+# First step of flagging
+    df['time'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
+    df['time_numeric'] = df['time'].map(lambda x: x.toordinal() + x.hour / 24 + x.minute / 1440 + x.second / 86400)
+
+    # Adjust values below detection limits
+    for param, DL in DL_dict.items():
+        df[param] = pd.to_numeric(df[param], errors='coerce')  #ar61b
+        df[param] = df[param].clip(lower=DL)
+
+    # Add flag columns with default values
+    for param in DL_dict.keys():
+        df[flag_dict[param]] = 1
+
+    # Calculate and apply ratios/differences
+    for idx, row in df.iterrows():
+        close_rows = df[
+            (np.abs((df['time'] - row['time']).dt.total_seconds()) < 60) &
+            (np.abs(df['depth'] - row['depth']) < 3) &
+            (df.index != idx) &
+            (row['project_id'] != 'OOI') &
+            (df['project_id'] != 'OOI')
+        ]
+        for param in DL_dict.keys():
+            if not close_rows.empty:
+                mean_value = (close_rows[param].mean() + row[param]) / 2
+                ratio = 100 * (row[param] - mean_value) / mean_value           
+                if len(close_rows) >= 2: 
+                   # Compare sample value against mean of the other rows
+                   if abs(close_rows[param].mean() - row[param]) > diff_dict[param]:
+                       df.at[idx, flag_dict[param]] = 4
+                   else:
+                       # Apply different thresholds for ammonium
+                       if param == "ammonium":
+                           if abs(ratio) > 50:
+                               df.at[idx, flag_dict[param]] = 4
+                           elif abs(ratio) > 20:
+                               df.at[idx, flag_dict[param]] = 3
+                       else:
+                           if abs(ratio) > 40:
+                               df.at[idx, flag_dict[param]] = 4
+                           elif abs(ratio) > 15:
+                               df.at[idx, flag_dict[param]] = 3
+                else:
+                    # Apply different thresholds for ammonium
+                    if param == "ammonium":
+                        if abs(ratio) > 50:
+                            df.at[idx, flag_dict[param]] = 4
+                        elif abs(ratio) > 20:
+                            df.at[idx, flag_dict[param]] = 3
+                    else:
+                        if abs(ratio) > 40:
+                            df.at[idx, flag_dict[param]] = 4
+                        elif abs(ratio) > 15:
+                            df.at[idx, flag_dict[param]] = 3
+            else:
+                # set single row value to not reviewed
+                if (param == 'ammonium') & (df.at[idx, 'project_id'] == 'OOI'):
+                    df.at[idx, flag_dict[param]] = 3
+                else:
+                    df.at[idx, flag_dict[param]] = 2
+
+# 1st step of lter nut flagging doesn't work well for low concentrations. 
+# this 2nd step changes flag=4(bad) to flag=3(caution) to be more lenient. 
+# next step is manual inspection of all flagged data
+# do not want to be too lenient and change flags to 1(good) because good will not be manually inspected
+
+# 2nd step = if both replicates are less than DetectionLimit * 10, then change from bad to caution
+# Detection Limit (DL) is nutrient specific
+
+    # Refine flags for low concentrations
+    for param, DL in DL_dict.items():
+        flag_col = flag_dict[param]
+        for idx, row in df.iterrows():
+            if row[flag_col] == 4:
+                close_rows = df[
+                    (np.abs(df['time_numeric'] - row['time_numeric']) < 1 / (24 * 60)) &
+                    (np.abs(df['depth'] - row['depth']) < 3) 
+                ]
+                if len(close_rows) > 1 and (close_rows[param] < DL * 10).sum() > 1 and row[param] < DL * 10:
+                    df.at[idx, flag_col] = 3
+
+    # Drop helper columns
+    df.drop(columns=['time', 'time_numeric'], inplace=True)
+    return df
+
+
+def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, bottles, cruise):
     if not os.path.exists(sample_log_path):
         raise DataNotFound('Sample log path not found at {}'.format(sample_log_path))
     if not os.path.exists(nut_path):
@@ -110,10 +232,22 @@ def merge_nut_bottles(sample_log_path, nut_path, bottle_summary, cruise):
             nut_profile.loc[nut_profile['cast'] == cast, 'longitude'] = 'NaN'
             nut_profile.loc[nut_profile['cast'] == cast, 'depth'] = 'NaN'
 
+    # merge temperature and salinity from bottle data
+    bottles.cast = bottles.cast.astype(str).str.lstrip("0")
+    nut_profile = nut_profile.merge(
+        bottles[['cruise', 'cast', 'niskin', 't090c', 't190c', 'sal00', 'sal11']], 
+        on=['cruise', 'cast', 'niskin'], 
+        how='right'
+    )
+
     # drop rows (picked up in btl_sum.merge right) with casts that were not in btl_sum
     nut_profile.dropna(subset=['date'], inplace=True)
     if cruise.lower() in JP_STUDENT_CRUISES:
         nut_profile['project_id'] = 'JP'
     else:
         nut_profile['project_id'] = np.where(nut_profile['alternate_sample_id'].isna(), 'LTER', 'OOI')
+
+    # calculate and apply quality flags
+    nut_profile = apply_flags(nut_profile)
+
     return nut_profile
