@@ -15,7 +15,7 @@ COPY VERSION .
 COPY setup.py .
 
 # install neslter library
-RUN python setup.py install
+RUN pip install .
 
 # now copy the django app
 COPY ./nlweb ./nlweb
